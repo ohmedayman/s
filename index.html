@@ -8,40 +8,18 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        'tajawal': ['Tajawal', 'sans-serif'],
-                    },
+                    fontFamily: { 'tajawal': ['Tajawal', 'sans-serif'] },
                     colors: {
-                        'brand': {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            200: '#c7d2fe',
-                            300: '#a5b4fc',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81',
-                        },
-                        'dark': {
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            200: '#e2e8f0',
-                            300: '#cbd5e1',
-                            400: '#94a3b8',
-                            500: '#64748b',
-                            600: '#475569',
-                            700: '#334155',
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#020617',
-                        }
+                        'brand': { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' },
+                        'dark': { 50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617' }
                     }
                 }
             }
@@ -52,73 +30,76 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #818cf8; }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .gradient-brand {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-        }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .hover-lift {
-            transition: all 0.3s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
-        }
-        .pulse-dot {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        .sidebar-item {
-            transition: all 0.2s ease;
-        }
-        .sidebar-item:hover {
-            background: rgba(99, 102, 241, 0.1);
-            border-right: 3px solid #6366f1;
-        }
-        .sidebar-item.active {
-            background: rgba(99, 102, 241, 0.15);
-            border-right: 3px solid #6366f1;
-        }
+        .gradient-brand { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .hover-lift { transition: all 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2); }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-up { animation: fadeInUp 0.6s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .sidebar-item { transition: all 0.2s ease; border-right: 3px solid transparent; }
+        .sidebar-item:hover { background: rgba(99, 102, 241, 0.1); border-right-color: #6366f1; }
+        .sidebar-item.active { background: rgba(99, 102, 241, 0.15); border-right-color: #6366f1; }
+        .text-gradient { background: linear-gradient(135deg, #818cf8, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glow { box-shadow: 0 0 60px rgba(99, 102, 241, 0.4); }
+        .hero-bg { background: radial-gradient(ellipse at top, rgba(99,102,241,0.15) 0%, transparent 60%); }
+        .float { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .gradient-text { background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     </style>
 </head>
 <body class="bg-dark-950 text-white font-tajawal">
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, createContext, useContext } = React;
+
+        // ==================== FIREBASE CONFIG ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3IT_cpG8umAO41FLeOSCOzt4whyndWUI",
+            authDomain: "socialmedia-byvexonet.firebaseapp.com",
+            projectId: "socialmedia-byvexonet",
+            storageBucket: "socialmedia-byvexonet.firebasestorage.app",
+            messagingSenderId: "811962367877",
+            appId: "1:811962367877:web:380f89a7559485a3ca8eec",
+            measurementId: "G-WN4FZ1HHM7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const analytics = firebase.analytics();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        // ==================== AUTH CONTEXT ====================
+        const AuthContext = createContext();
+        function useAuth() { return useContext(AuthContext); }
+
+        function AuthProvider({ children }) {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const unsubscribe = auth.onAuthStateChanged(user => {
+                    setUser(user);
+                    setLoading(false);
+                });
+                return unsubscribe;
+            }, []);
+
+            const loginWithEmail = (email, password) => auth.signInWithEmailAndPassword(email, password);
+            const registerWithEmail = (email, password, name) => auth.createUserWithEmailAndPassword(email, password).then(res => res.user.updateProfile({ displayName: name }));
+            const loginWithGoogle = () => auth.signInWithPopup(googleProvider);
+            const logout = () => auth.signOut();
+            const resetPassword = (email) => auth.sendPasswordResetEmail(email);
+
+            const value = { user, loading, loginWithEmail, registerWithEmail, loginWithGoogle, logout, resetPassword };
+            return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+        }
 
         // ==================== DATA ====================
         const mockStats = [
@@ -138,180 +119,542 @@
             { day: 'الجمعة', posts: 1, engagement: 2.8, reach: 4200 },
         ];
 
-        const calendarEvents = [
-            { id: 1, date: '2026-07-10', title: 'عرض الصيف - خصم 30%', platform: 'إنستغرام', status: 'جاهز', type: 'عرض' },
-            { id: 2, date: '2026-07-12', title: 'منتج جديد - سماعات بلوتوث', platform: 'تيك توك', status: 'مسودة', type: 'منتج' },
-            { id: 3, date: '2026-07-14', title: 'رأي عميل - فيديو تجربة', platform: 'فيسبوك', status: 'منشور', type: 'رأي عميل' },
-            { id: 4, date: '2026-07-15', title: 'نصيحة - كيفية اختيار المنتج', platform: 'إنستغرام', status: 'جاهز', type: 'نصيحة' },
-            { id: 5, date: '2026-07-18', title: 'عد تنازلي - عرض الجمعة', platform: 'جميع المنصات', status: 'مسودة', type: 'عد تنازلي' },
-            { id: 6, date: '2026-07-20', title: 'خلف الكواليس - مخزن المتجر', platform: 'ستوري', status: 'جاهز', type: 'خلف الكواليس' },
-        ];
-
         const templates = [
-            { id: 1, name: 'عرض/خصم', description: 'قالب عروض وخصومات مع السعر القديم والجديد', category: 'عرض', color: 'from-red-500 to-pink-500', preview: '🔥 خصم 30% على جميع المنتجات' },
-            { id: 2, name: 'منتج جديد', description: 'إطلاق منتج جديد مع ميزاته الرئيسية', category: 'منتج', color: 'from-brand-500 to-purple-500', preview: '✨ وصلنا لكم الجديد' },
-            { id: 3, name: 'اقتباس/نصيحة', description: 'نصيحة أو اقتراح مفيد للمتابعين', category: 'نصيحة', color: 'from-emerald-500 to-teal-500', preview: '💡 نصيحة اليوم' },
-            { id: 4, name: 'رأي عميل', description: 'تقييم وتجربة عميل حقيقي', category: 'رأي عميل', color: 'from-amber-500 to-orange-500', preview: '⭐ آراء عملائنا' },
-            { id: 5, name: 'خلف الكواليس', description: 'إطلالة على ما يحدث خلف الكواليس', category: 'خلف الكواليس', color: 'from-cyan-500 to-blue-500', preview: '🎬 من وراء الكواليس' },
-            { id: 6, name: 'عد تنازلي', description: 'عد تنازلي لمناسبة أو عرض خاص', category: 'عد تنازلي', color: 'from-rose-500 to-red-500', preview: '⏰ العد التنازلي بدأ' },
-        ];
-
-        const captions = [
-            {
-                id: 1,
-                title: 'عرض الصيف',
-                caption: '☀️ الصيف هذا مختلف! خصم 30% على كل شيء\n\nلا تفوّت الفرصة 🔥\nالعرض ساري لفترة محدودة فقط\n\n🛒 اطلب الآن من الرابط في البايو',
-                hashtags: '#عرض_الصيف #خصم30_الف_ميه #تسوق_اونلاين #عروض #توفير #ماركتنج #سوشيال_فاست',
-                platform: 'إنستغرام',
-                time: 'الساعة 8 مساءً'
-            },
-            {
-                id: 2,
-                title: 'منتج جديد',
-                caption: '✨ حصرًا عندنا! وصلنا لكم المنتج اللي كنتم تستنوه\n\nمواصفات خرافية:\n✅ جودة عالية\n✅ سعر منافس\n✅ شحن مجاني\n\n📦 الكمية محدودة - لا تفوّتها!',
-                hashtags: '#منتج_جديد #جديد_في_المتجر #تسوق #اونلاين_شوب #ماركتنج_الكتروني',
-                platform: 'تيك توك',
-                time: 'الساعة 7 مساءً'
-            },
-            {
-                id: 3,
-                title: 'رأي عميل',
-                caption: '⭐⭐⭐⭐⭐\n" أفضل متجر تعاملت معهم! المنتج وصلني بحالة ممتازة والتغليف روعة "\n- أحمد من الرياض\n\nشكًا لثقتكم فينا 💜',
-                hashtags: '#رأي_العملاء #تقييم #ثقة_العملاء #متجر_مميز',
-                platform: 'فيسبوك',
-                time: 'الساعة 6 مساءً'
-            },
+            { id: 1, name: 'عرض/خصم', description: 'قالب عروض وخصومات', category: 'عرض', color: 'from-red-500 to-pink-500', preview: '🔥 خصم 30%' },
+            { id: 2, name: 'منتج جديد', description: 'إطلاق منتج جديد', category: 'منتج', color: 'from-brand-500 to-purple-500', preview: '✨ وصلنا الجديد' },
+            { id: 3, name: 'اقتباس/نصيحة', description: 'نصيحة مفيدة', category: 'نصيحة', color: 'from-emerald-500 to-teal-500', preview: '💡 نصيحة اليوم' },
+            { id: 4, name: 'رأي عميل', description: 'تقييم عميل', category: 'رأي عميل', color: 'from-amber-500 to-orange-500', preview: '⭐ آراء عملائنا' },
+            { id: 5, name: 'خلف الكواليس', description: 'ما يحدث خلف الكواليس', category: 'خلف الكواليس', color: 'from-cyan-500 to-blue-500', preview: '🎬 من وراء الكواليس' },
+            { id: 6, name: 'عد تنازلي', description: 'عد تنازلي لعرض', category: 'عد تنازلي', color: 'from-rose-500 to-red-500', preview: '⏰ العد بدأ' },
         ];
 
         const messageTemplates = [
-            { id: 1, category: 'استفسار سعر', template: 'مرحبًا! 😊\nسعر المنتج هو [السعر] ريال\nمع شحن مجاني للطلبات فوق 200 ريال\nهل تحب أساعدك في طلب؟' },
-            { id: 2, category: 'شحن', template: 'مرحبًا! 📦\nالشحن خلال 3-5 أيام عمل داخل المملكة\nللحملات والطلبات الخارجية يختلف الوقت\nتبي أساعدك بشي ثاني؟' },
-            { id: 3, category: 'توفر المقاس', template: 'مرحبًا! 🎨\nالمنتج متوفر بالمقاسات/الألوان التالية:\n[أضف الخيارات]\nاختار اللي يناسبك!' },
-            { id: 4, category: 'شكوى', template: 'مرحبًا! نعتذر عن أي إزعاج 🙏\nنحب نحل المشكلة فورًا\nممكن تعطينا تفاصيل أكثر عن الطلب؟\nسنرافقك خطوة بخطوة' },
-            { id: 5, category: 'شكر', template: 'شكرًا لاختيارك متجرنا! 💜\nنتمنى يعجبك المنتج\nلا تتردد تتواصل معنا لأي استفسار\nونتظر تقييمك 😊' },
+            { id: 1, category: 'استفسار سعر', template: 'مرحبًا! 😊\nسعر المنتج هو [السعر] ريال\nمع شحن مجاني للطلبات فوق 200 ريال' },
+            { id: 2, category: 'شحن', template: 'مرحبًا! 📦\nالشحن خلال 3-5 أيام عمل داخل المملكة' },
+            { id: 3, category: 'شكوى', template: 'مرحبًا! نعتذر عن أي إزعاج 🙏\nنحب نحل المشكلة فورًا' },
         ];
 
-        // ==================== COMPONENTS ====================
+        const pricingPlans = [
+            { id: 1, name: 'مجاني', price: '0', period: 'دائمًا', features: ['3 منشورات شهريًا', 'قالب واحد', 'كاتب كابشنات básico', 'دعم عبر البريد'], color: 'dark', popular: false },
+            { id: 2, name: 'برو', price: '49', period: 'شهريًا', features: ['منشورات غير محدودة', 'جميع القوالب', 'كاتب كابشنات AI', 'تحليل الأداء', 'دعم مباشر', 'إدارة الرسائل'], color: 'brand', popular: true },
+            { id: 3, name: 'entreprise', price: '149', period: 'شهريًا', features: ['كل ميزات برو', 'فريق عمل (5 أعضاء)', 'API доступ', 'تقارير مخصصة', 'مدير حساب مخصص', 'SLA 99.9%'], color: 'purple', popular: false },
+        ];
 
-        // Sidebar Component
+        // ==================== LANDING PAGE COMPONENTS ====================
+
+        function Navbar({ onNavigate }) {
+            const [scrolled, setScrolled] = useState(false);
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-dark-950/90 backdrop-blur-xl border-b border-dark-800' : ''}`}>
+                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold text-lg">S</div>
+                            <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
+                        </div>
+                        <div className="hidden md:flex items-center gap-8">
+                            <a href="#features" className="text-dark-300 hover:text-white transition-colors">الميزات</a>
+                            <a href="#pricing" className="text-dark-300 hover:text-white transition-colors">الأسعار</a>
+                            <a href="#testimonials" className="text-dark-300 hover:text-white transition-colors">الآراء</a>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => onNavigate('login')} className="px-4 py-2 text-dark-300 hover:text-white transition-colors">تسجيل الدخول</button>
+                            <button onClick={() => onNavigate('register')} className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">ابدأ مجانًا</button>
+                        </div>
+                    </div>
+                </nav>
+            );
+        }
+
+        function HeroSection({ onNavigate }) {
+            return (
+                <section className="min-h-screen flex items-center justify-center relative hero-bg overflow-hidden">
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute top-20 right-20 w-72 h-72 bg-brand-500/20 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-20 left-20 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-6 py-32 text-center relative z-10">
+                        <div className="inline-block px-4 py-2 bg-brand-500/10 border border-brand-500/20 rounded-full text-brand-400 text-sm mb-6 fade-in-up">
+                            🚀 المنصة الأولى لإدارة السوشيال ميديا
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight fade-in-up" style={{ animationDelay: '0.1s' }}>
+                            أدر سوشيال ميديا<br />
+                            <span className="gradient-text">بذكاء واحترافية</span>
+                        </h1>
+                        <p className="text-xl text-dark-300 max-w-2xl mx-auto mb-10 fade-in-up" style={{ animationDelay: '0.2s' }}>
+                            منصة متكاملة لإدارة حساباتك على جميع المنصات. اكتب محتوى أفضل، جدول منشوراتك، وحلل أداءك - كلها في مكان واحد.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up" style={{ animationDelay: '0.3s' }}>
+                            <button onClick={() => onNavigate('register')} className="px-8 py-4 bg-brand-500 hover:bg-brand-600 rounded-2xl text-white font-bold text-lg transition-all hover:scale-105 glow">
+                                ابدأ مجانًا الآن
+                            </button>
+                            <button className="px-8 py-4 bg-dark-800 hover:bg-dark-700 rounded-2xl text-white font-medium text-lg transition-all flex items-center gap-2">
+                                <span>▶️</span> شاهد الفيديو التعريفي
+                            </button>
+                        </div>
+                        <div className="mt-16 flex items-center justify-center gap-8 text-dark-400 text-sm fade-in-up" style={{ animationDelay: '0.4s' }}>
+                            <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> بدون بطاقة ائتمان</div>
+                            <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> إعداد في 2 دقيقة</div>
+                            <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> إلغاء في أي وقت</div>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function FeaturesSection() {
+            const features = [
+                { icon: '📊', title: 'لوحة تحكم ذكية', description: 'نظرة شاملة على أداء حساباتك مع رسوم بيانية تفاعلية وإحصائيات مفصلة.' },
+                { icon: '📅', title: 'تقويم المحتوى', description: 'جدول منشوراتك مسبقًا مع سحب وإفلات وتنبيهات ذكية.' },
+                { icon: '✍️', title: 'كاتب الكابشنات AI', description: 'ولّد كابشنات احترافية بالذكاء الاصطناعي ب多种 نبرات صوت مختلفة.' },
+                { icon: '🎨', title: 'مكتبة القوالب', description: 'أكثر من 100 قالب جاهز للتعديل يناسب جميع أنواع المحتوى.' },
+                { icon: '#️⃣', title: 'بحث الهاشتاجات', description: 'ابحث عن أفضل الهاشتاجات الرائجة وتابع أداءها.' },
+                { icon: '📈', title: 'تحليل الأداء', description: 'تقارير مفصلة لأفضل أوقات النشر والمحتوى الأعلى تفاعلًا.' },
+                { icon: '💬', title: 'إدارة الرسائل', description: 'ردود جاهزة على الاستفسارات الشائعة مع ردود ذكية.' },
+                { icon: '🔄', title: 'إعادة استخدام المحتوى', description: 'حوّل منشور واحد إلى عدة صيغ مختلفة لكل المنصات.' },
+                { icon: '💰', title: 'حاسبة العائد', description: 'احسب عائد استثمارك في كل حملة تسويقية.' },
+            ];
+
+            return (
+                <section id="features" className="py-32 relative">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <span className="text-brand-400 font-medium">الميزات</span>
+                            <h2 className="text-4xl md:text-5xl font-black text-white mt-3">كل ما تحتاجه في مكان واحد</h2>
+                            <p className="text-dark-300 mt-4 max-w-2xl mx-auto">أدوات متقدمة مصممة خصيصًا لمساعدتك على إدارة حساباتك بكفاءة عالية</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {features.map((f, i) => (
+                                <div key={i} className="glass-card rounded-2xl p-6 hover-lift fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                                    <div className="w-14 h-14 rounded-2xl bg-brand-500/10 flex items-center justify-center text-3xl mb-4">{f.icon}</div>
+                                    <h3 className="text-xl font-bold text-white mb-2">{f.title}</h3>
+                                    <p className="text-dark-300 text-sm leading-relaxed">{f.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function PricingSection({ onNavigate }) {
+            return (
+                <section id="pricing" className="py-32 relative">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <span className="text-brand-400 font-medium">الأسعار</span>
+                            <h2 className="text-4xl md:text-5xl font-black text-white mt-3">خطط تناسب الجميع</h2>
+                            <p className="text-dark-300 mt-4">ابدأ مجانًا وترقّي حسب احتياجك</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                            {pricingPlans.map((plan, i) => (
+                                <div key={plan.id} className={`rounded-2xl p-8 transition-all hover-lift ${plan.popular ? 'bg-gradient-to-b from-brand-500/20 to-brand-600/10 border-2 border-brand-500 relative' : 'glass-card'}`}>
+                                    {plan.popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand-500 rounded-full text-white text-sm font-medium">الأكثر شعبية</div>}
+                                    <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                                    <div className="flex items-baseline gap-1 mb-6">
+                                        <span className="text-4xl font-black text-white">${plan.price}</span>
+                                        <span className="text-dark-400">/ {plan.period}</span>
+                                    </div>
+                                    <ul className="space-y-3 mb-8">
+                                        {plan.features.map((f, j) => (
+                                            <li key={j} className="flex items-center gap-2 text-dark-300 text-sm"><span className="text-emerald-400">✓</span>{f}</li>
+                                        ))}
+                                    </ul>
+                                    <button onClick={() => onNavigate('register')} className={`w-full py-3 rounded-xl font-medium transition-all ${plan.popular ? 'bg-brand-500 hover:bg-brand-600 text-white' : 'bg-dark-700 hover:bg-dark-600 text-white'}`}>
+                                        ابدأ الآن
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function TestimonialsSection() {
+            const testimonials = [
+                { name: 'سارة أحمد', role: 'صاحبة متجر إلكتروني', avatar: 'س', text: 'سوشيال فاست غيّر طريقة عملي بالكامل! أصبحت أ Publish محتوى بانتظام وتفاعل متابعيني زاد 300%.', rating: 5 },
+                { name: 'خالد محمد', role: 'مدير تسويق', avatar: 'خ', text: 'أفضل أداة لإدارة حسابات العملاء. tiếtّف الوقت و improves النتائج بشكل ملحوظ.', rating: 5 },
+                { name: 'نورة سعيد', role: 'مؤثرة ومدونة', avatar: 'ن', text: 'كاتب الكابشنات بالذكاء الاصطناعي وسّلني_hours من الكتابة. أنصح فيه كل من يدير حسابات.', rating: 5 },
+            ];
+
+            return (
+                <section id="testimonials" className="py-32 relative">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <span className="text-brand-400 font-medium">الآراء</span>
+                            <h2 className="text-4xl md:text-5xl font-black text-white mt-3">ماذا يقول عملاؤنا</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {testimonials.map((t, i) => (
+                                <div key={i} className="glass-card rounded-2xl p-6 hover-lift fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
+                                    <div className="flex gap-1 mb-4">{Array(5).fill(0).map((_, j) => <span key={j} className="text-amber-400">⭐</span>)}</div>
+                                    <p className="text-dark-200 text-sm leading-relaxed mb-6">"{t.text}"</p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">{t.avatar}</div>
+                                        <div><p className="text-white font-bold">{t.name}</p><p className="text-dark-400 text-sm">{t.role}</p></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function CTASection({ onNavigate }) {
+            return (
+                <section className="py-32 relative">
+                    <div className="max-w-4xl mx-auto px-6 text-center">
+                        <div className="glass-card rounded-3xl p-12 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 to-pink-500/10"></div>
+                            <div className="relative z-10">
+                                <h2 className="text-4xl font-black text-white mb-4">جاهز لتطوير سوشيال ميديا؟</h2>
+                                <p className="text-dark-300 mb-8 max-w-xl mx-auto">انضم لآلاف المسوقين الذين يستخدمون سوشيال فاست لإدارة حساباتهم بكفاءة</p>
+                                <button onClick={() => onNavigate('register')} className="px-10 py-4 bg-brand-500 hover:bg-brand-600 rounded-2xl text-white font-bold text-lg transition-all hover:scale-105 glow">
+                                    ابدأ مجانًا الآن
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function Footer() {
+            return (
+                <footer className="border-t border-dark-800 py-12">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                            <div>
+                                <div className="flex items-center gap-3 mb-4"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div><span className="text-xl font-bold text-gradient">سوشيال فاست</span></div>
+                                <p className="text-dark-400 text-sm">المنصة الأولى لإدارة السوشيال ميديا في العالم العربي</p>
+                            </div>
+                            <div><h4 className="text-white font-bold mb-4">المنتج</h4><ul className="space-y-2 text-dark-400 text-sm"><li>الميزات</li><li>الأسعار</li><li>التكاملات</li><li>واجهة API</li></ul></div>
+                            <div><h4 className="text-white font-bold mb-4">الشركة</h4><ul className="space-y-2 text-dark-400 text-sm"><li>من نحن</li><li>المدونة</li><li>الوظائف</li><li>تواصل معنا</li></ul></div>
+                            <div><h4 className="text-white font-bold mb-4">الدعم</h4><ul className="space-y-2 text-dark-400 text-sm"><li>مركز المساعدة</li><li>الشروط والأحكام</li><li>سياسة الخصوصية</li><li>الأسئلة الشائعة</li></ul></div>
+                        </div>
+                        <div className="border-t border-dark-800 mt-12 pt-8 text-center text-dark-400 text-sm">
+                            © 2026 سوشيال فاست. جميع الحقوق محفوظة.
+                        </div>
+                    </div>
+                </footer>
+            );
+        }
+
+        function LandingPage({ onNavigate }) {
+            return (
+                <div className="min-h-screen bg-dark-950">
+                    <Navbar onNavigate={onNavigate} />
+                    <HeroSection onNavigate={onNavigate} />
+                    <FeaturesSection />
+                    <PricingSection onNavigate={onNavigate} />
+                    <TestimonialsSection />
+                    <CTASection onNavigate={onNavigate} />
+                    <Footer />
+                </div>
+            );
+        }
+
+        // ==================== AUTH PAGES ====================
+
+        function LoginPage({ onNavigate }) {
+            const { loginWithEmail, loginWithGoogle, resetPassword } = useAuth();
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [showReset, setShowReset] = useState(false);
+            const [resetEmail, setResetEmail] = useState('');
+            const [resetSent, setResetSent] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+                try {
+                    await loginWithEmail(email, password);
+                    onNavigate('dashboard');
+                } catch (err) {
+                    setError(err.message.includes('user-not-found') ? 'البريد الإلكتروني غير مسجل' : err.message.includes('wrong-password') ? 'كلمة المرور غير صحيحة' : 'حدث خطأ، حاول مرة أخرى');
+                }
+                setLoading(false);
+            };
+
+            const handleGoogleLogin = async () => {
+                try {
+                    await loginWithGoogle();
+                    onNavigate('dashboard');
+                } catch (err) {
+                    setError('فشل تسجيل الدخول بـ Google');
+                }
+            };
+
+            const handleReset = async (e) => {
+                e.preventDefault();
+                try {
+                    await resetPassword(resetEmail);
+                    setResetSent(true);
+                } catch (err) {
+                    setError('البريد الإلكتروني غير مسجل');
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+                    
+                    <div className="w-full max-w-md relative z-10">
+                        <div className="text-center mb-8">
+                            <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div>
+                                <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
+                            </button>
+                            <h1 className="text-3xl font-black text-white">مرحبًا بعودتك!</h1>
+                            <p className="text-dark-400 mt-2">سجّل دخولك لإدارة حساباتك</p>
+                        </div>
+
+                        <div className="glass-card rounded-2xl p-8">
+                            {showReset ? (
+                                <div>
+                                    <button onClick={() => setShowReset(false)} className="text-brand-400 text-sm mb-4 flex items-center gap-1">→ العودة لتسجيل الدخول</button>
+                                    <h2 className="text-xl font-bold text-white mb-4">إعادة تعيين كلمة المرور</h2>
+                                    {resetSent ? (
+                                        <div className="text-center py-4">
+                                            <div className="text-4xl mb-4">📧</div>
+                                            <p className="text-emerald-400">تم إرسال رابط إعادة التعيين على بريدك</p>
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleReset}>
+                                            <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 mb-4" placeholder="بريدك الإلكتروني" required />
+                                            <button type="submit" className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">إرسال الرابط</button>
+                                        </form>
+                                    )}
+                                </div>
+                            ) : (
+                                <div>
+                                    {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">{error}</div>}
+                                    
+                                    <button onClick={handleGoogleLogin} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                        الدخول بـ Google
+                                    </button>
+
+                                    <div className="flex items-center gap-4 my-6">
+                                        <div className="flex-1 h-px bg-dark-700"></div>
+                                        <span className="text-dark-400 text-sm">أو</span>
+                                        <div className="flex-1 h-px bg-dark-700"></div>
+                                    </div>
+
+                                    <form onSubmit={handleLogin} className="space-y-4">
+                                        <div>
+                                            <label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label>
+                                            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors" placeholder="example@email.com" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-dark-300 text-sm mb-2">كلمة المرور</label>
+                                            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors" placeholder="••••••••" required />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <label className="flex items-center gap-2 text-dark-300 text-sm"><input type="checkbox" className="rounded border-dark-600 bg-dark-800" />تذكرني</label>
+                                            <button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-brand-400 text-sm hover:underline">نسيت كلمة المرور؟</button>
+                                        </div>
+                                        <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors">
+                                            {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                                        </button>
+                                    </form>
+                                </div>
+                            )}
+                        </div>
+
+                        <p className="text-center text-dark-400 mt-6">
+                            ليس لديك حساب؟ <button onClick={() => onNavigate('register')} className="text-brand-400 hover:underline font-medium">سجّل الآن مجانًا</button>
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        function RegisterPage({ onNavigate }) {
+            const { registerWithEmail, loginWithGoogle } = useAuth();
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleRegister = async (e) => {
+                e.preventDefault();
+                setError('');
+                if (password !== confirmPassword) { setError('كلمتا المرور غير متطابقتين'); return; }
+                if (password.length < 6) { setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+                setLoading(true);
+                try {
+                    await registerWithEmail(email, password, name);
+                    onNavigate('dashboard');
+                } catch (err) {
+                    setError(err.message.includes('email-already-in-use') ? 'البريد الإلكتروني مسجل بالفعل' : 'حدث خطأ، حاول مرة أخرى');
+                }
+                setLoading(false);
+            };
+
+            const handleGoogleLogin = async () => {
+                try { await loginWithGoogle(); onNavigate('dashboard'); } catch (err) { setError('فشل التسجيل بـ Google'); }
+            };
+
+            return (
+                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-6 relative overflow-hidden">
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+                    
+                    <div className="w-full max-w-md relative z-10">
+                        <div className="text-center mb-8">
+                            <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div>
+                                <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
+                            </button>
+                            <h1 className="text-3xl font-black text-white">أنشئ حسابك مجانًا</h1>
+                            <p className="text-dark-400 mt-2">ابدأ إدارة سوشيال ميديا في دقائق</p>
+                        </div>
+
+                        <div className="glass-card rounded-2xl p-8">
+                            {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">{error}</div>}
+                            
+                            <button onClick={handleGoogleLogin} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
+                                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                التسجيل بـ Google
+                            </button>
+
+                            <div className="flex items-center gap-4 my-6">
+                                <div className="flex-1 h-px bg-dark-700"></div>
+                                <span className="text-dark-400 text-sm">أو</span>
+                                <div className="flex-1 h-px bg-dark-700"></div>
+                            </div>
+
+                            <form onSubmit={handleRegister} className="space-y-4">
+                                <div>
+                                    <label className="block text-dark-300 text-sm mb-2">الاسم الكامل</label>
+                                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="محمد أحمد" required />
+                                </div>
+                                <div>
+                                    <label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label>
+                                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="example@email.com" required />
+                                </div>
+                                <div>
+                                    <label className="block text-dark-300 text-sm mb-2">كلمة المرور</label>
+                                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="6 أحرف على الأقل" required />
+                                </div>
+                                <div>
+                                    <label className="block text-dark-300 text-sm mb-2">تأكيد كلمة المرور</label>
+                                    <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="أعد إدخال كلمة المرور" required />
+                                </div>
+                                <label className="flex items-start gap-2 text-dark-300 text-sm">
+                                    <input type="checkbox" className="mt-1 rounded border-dark-600 bg-dark-800" required />
+                                    <span>أوافق على <a href="#" className="text-brand-400 hover:underline">الشروط والأحكام</a> و <a href="#" className="text-brand-400 hover:underline">سياسة الخصوصية</a></span>
+                                </label>
+                                <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors">
+                                    {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب مجاني'}
+                                </button>
+                            </form>
+                        </div>
+
+                        <p className="text-center text-dark-400 mt-6">
+                            لديك حساب بالفعل؟ <button onClick={() => onNavigate('login')} className="text-brand-400 hover:underline font-medium">سجّل دخولك</button>
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== DASHBOARD COMPONENTS ====================
+
         function Sidebar({ activePage, setActivePage, isOpen, setIsOpen }) {
             const menuItems = [
                 { id: 'dashboard', name: 'لوحة التحكم', icon: '📊' },
-                { id: 'calendar', name: 'تقويم المحتوى', icon: '📅' },
-                { id: 'templates', name: 'مكتبة القوالب', icon: '🎨' },
-                { id: 'captions', name: 'كاتب الكابشنات', icon: '✍️' },
-                { id: 'messages', name: 'إدارة الرسائل', icon: '💬' },
-                { id: 'analytics', name: 'تحليل الأداء', icon: '📈' },
+                { id: 'calendar', name: 'التقويم', icon: '📅' },
+                { id: 'templates', name: 'القوالب', icon: '🎨' },
+                { id: 'captions', name: 'الكابشنات', icon: '✍️' },
+                { id: 'hashtags', name: 'الهاشتاجات', icon: '#️⃣' },
+                { id: 'messages', name: 'الرسائل', icon: '💬' },
+                { id: 'analytics', name: 'التحليل', icon: '📈' },
+                { id: 'settings', name: 'الإعدادات', icon: '⚙️' },
             ];
 
             return (
                 <aside className={`fixed right-0 top-0 h-full bg-dark-900 border-l border-dark-700 transition-all duration-300 z-50 ${isOpen ? 'w-64' : 'w-20'} flex flex-col`}>
-                    {/* Logo */}
                     <div className="p-4 border-b border-dark-700">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold text-lg">
-                                S
-                            </div>
-                            {isOpen && (
-                                <div className="slide-in">
-                                    <h1 className="text-lg font-bold bg-gradient-to-l from-brand-400 to-pink-400 bg-clip-text text-transparent">
-                                        سوشيال فاست
-                                    </h1>
-                                    <p className="text-xs text-dark-400">إدارة السوشيال ميديا</p>
-                                </div>
-                            )}
+                            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold text-lg flex-shrink-0">S</div>
+                            {isOpen && <div className="slide-in"><h1 className="text-lg font-bold text-gradient">سوشيال فاست</h1></div>}
                         </div>
                     </div>
-
-                    {/* Menu */}
                     <nav className="flex-1 py-4 overflow-y-auto">
                         {menuItems.map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => setActivePage(item.id)}
-                                className={`sidebar-item w-full flex items-center gap-3 px-4 py-3 text-right transition-all ${activePage === item.id ? 'active bg-brand-500/10 text-brand-400' : 'text-dark-300 hover:text-white'}`}
-                            >
-                                <span className="text-xl">{item.icon}</span>
+                            <button key={item.id} onClick={() => setActivePage(item.id)} className={`sidebar-item w-full flex items-center gap-3 px-4 py-3 text-right ${activePage === item.id ? 'active bg-brand-500/10 text-brand-400' : 'text-dark-300 hover:text-white'}`}>
+                                <span className="text-xl flex-shrink-0">{item.icon}</span>
                                 {isOpen && <span className="text-sm font-medium">{item.name}</span>}
                             </button>
                         ))}
                     </nav>
-
-                    {/* Toggle Button */}
-                    <button
-                        onClick={() => setIsOpen(!isOpen)}
-                        className="p-4 border-t border-dark-700 hover:bg-dark-800 transition-colors"
-                    >
+                    <button onClick={() => setIsOpen(!isOpen)} className="p-4 border-t border-dark-700 hover:bg-dark-800 transition-colors">
                         <span className="text-xl">{isOpen ? '→' : '←'}</span>
                     </button>
                 </aside>
             );
         }
 
-        // Header Component
-        function Header({ activePage }) {
-            const pageNames = {
-                dashboard: 'لوحة التحكم',
-                calendar: 'تقويم المحتوى',
-                templates: 'مكتبة القوالب',
-                captions: 'كاتب الكابشنات',
-                messages: 'إدارة الرسائل',
-                analytics: 'تحليل الأداء',
-            };
+        function Header({ activePage, onNavigate }) {
+            const { user, logout } = useAuth();
+            const pageNames = { dashboard:'لوحة التحكم', calendar:'التقويم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
+            
+            const handleLogout = async () => { await logout(); onNavigate('landing'); };
 
             return (
                 <header className="h-16 bg-dark-900/80 backdrop-blur-xl border-b border-dark-700 flex items-center justify-between px-6 sticky top-0 z-40">
-                    <div>
-                        <h2 className="text-xl font-bold text-white">{pageNames[activePage]}</h2>
-                    </div>
+                    <h2 className="text-xl font-bold text-white">{pageNames[activePage]}</h2>
                     <div className="flex items-center gap-4">
                         <button className="relative p-2 hover:bg-dark-800 rounded-xl transition-colors">
                             <span className="text-xl">🔔</span>
                             <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full pulse-dot"></span>
                         </button>
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-sm">
-                                م
+                            <div className="text-left hidden md:block">
+                                <p className="text-sm font-medium text-white">{user?.displayName || 'مستخدم'}</p>
+                                <p className="text-xs text-dark-400">{user?.email}</p>
                             </div>
-                            <div className="hidden md:block">
-                                <p className="text-sm font-medium text-white">محمد أحمد</p>
-                                <p className="text-xs text-dark-400">مدير التسويق</p>
-                            </div>
+                            <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-sm">{user?.displayName?.charAt(0) || 'م'}</div>
+                            <button onClick={handleLogout} className="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-dark-300 text-sm transition-colors">خروج</button>
                         </div>
                     </div>
                 </header>
             );
         }
 
-        // Stat Card Component
         function StatCard({ stat, index }) {
             return (
                 <div className="glass-card rounded-2xl p-5 hover-lift fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-dark-400 text-sm mb-1">{stat.title}</p>
-                            <p className="text-2xl font-bold text-white">{stat.value}</p>
-                            <span className="text-emerald-400 text-xs font-medium">{stat.change}</span>
-                        </div>
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-2xl`}>
-                            {stat.icon}
-                        </div>
+                        <div><p className="text-dark-400 text-sm mb-1">{stat.title}</p><p className="text-2xl font-bold text-white">{stat.value}</p><span className="text-emerald-400 text-xs font-medium">{stat.change}</span></div>
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-2xl`}>{stat.icon}</div>
                     </div>
                 </div>
             );
         }
 
-        // Bar Chart Component (Simple)
         function BarChart({ data }) {
             const maxVal = Math.max(...data.map(d => d.reach));
             return (
                 <div className="flex items-end gap-2 h-48 mt-4">
                     {data.map((item, i) => (
                         <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                            <div
-                                className="w-full rounded-t-lg bg-gradient-to-t from-brand-600 to-brand-400 transition-all duration-500 hover:from-pink-600 hover:to-pink-400"
-                                style={{ height: `${(item.reach / maxVal) * 100}%` }}
-                            ></div>
+                            <div className="w-full rounded-t-lg bg-gradient-to-t from-brand-600 to-brand-400 transition-all duration-500 hover:from-pink-600 hover:to-pink-400" style={{ height: `${(item.reach / maxVal) * 100}%` }}></div>
                             <span className="text-xs text-dark-400">{item.day}</span>
                         </div>
                     ))}
@@ -319,113 +662,49 @@
             );
         }
 
-        // Line Chart Component (Simple)
         function LineChart({ data }) {
             const maxVal = Math.max(...data.map(d => d.engagement));
-            const points = data.map((item, i) => {
-                const x = (i / (data.length - 1)) * 100;
-                const y = 100 - (item.engagement / maxVal) * 80;
-                return `${x},${y}`;
-            }).join(' ');
-
+            const points = data.map((item, i) => `${(i / (data.length - 1)) * 100},${100 - (item.engagement / maxVal) * 80}`).join(' ');
             return (
                 <div className="h-32 mt-4">
                     <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
-                        <defs>
-                            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3"/>
-                                <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <polygon points={`0,100 ${points} 100,100`} fill="url(#lineGrad)"/>
+                        <defs><linearGradient id="lg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#6366f1" stopOpacity="0.3"/><stop offset="100%" stopColor="#6366f1" stopOpacity="0"/></linearGradient></defs>
+                        <polygon points={`0,100 ${points} 100,100`} fill="url(#lg)"/>
                         <polyline points={points} fill="none" stroke="#6366f1" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        {data.map((item, i) => {
-                            const x = (i / (data.length - 1)) * 100;
-                            const y = 100 - (item.engagement / maxVal) * 80;
-                            return <circle key={i} cx={x} cy={y} r="1" fill="#818cf8"/>;
-                        })}
+                        {data.map((item, i) => <circle key={i} cx={(i / (data.length - 1)) * 100} cy={100 - (item.engagement / maxVal) * 80} r="1" fill="#818cf8"/>)}
                     </svg>
                 </div>
             );
         }
 
-        // ==================== PAGES ====================
+        // ==================== DASHBOARD PAGES ====================
 
-        // Dashboard Page
         function DashboardPage() {
             const [recentPosts] = useState([
                 { id: 1, title: 'عرض الصيف - خصم 30%', platform: 'إنستغرام', status: 'منشور', engagement: '5.2%', time: '2 ساعة' },
                 { id: 2, title: 'منتج جديد - سماعات', platform: 'تيك توك', status: 'منشور', engagement: '7.1%', time: '5 ساعة' },
                 { id: 3, title: 'نصيحة التسوق', platform: 'فيسبوك', status: 'جاهز', engagement: '-', time: '-' },
-                { id: 4, title: 'رأي عميل - سارة', platform: 'إنستغرام', status: 'مسودة', engagement: '-', time: '-' },
             ]);
-
             return (
                 <div className="space-y-6 fade-in">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {mockStats.map((stat, i) => (
-                            <StatCard key={i} stat={stat} index={i} />
-                        ))}
-                    </div>
-
-                    {/* Charts Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">{mockStats.map((stat, i) => <StatCard key={i} stat={stat} index={i} />)}</div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Reach Chart */}
-                        <div className="glass-card rounded-2xl p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold text-white">الوصول الأسبوعي</h3>
-                                <span className="text-xs text-dark-400">آخر 7 أيام</span>
-                            </div>
-                            <BarChart data={weeklyData} />
-                        </div>
-
-                        {/* Engagement Chart */}
-                        <div className="glass-card rounded-2xl p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold text-white">معدل التفاعل</h3>
-                                <span className="text-xs text-emerald-400">↑ 2.1%</span>
-                            </div>
-                            <LineChart data={weeklyData} />
-                            <div className="flex justify-between mt-2 text-xs text-dark-400">
-                                {weeklyData.map((d, i) => <span key={i}>{d.day}</span>)}
-                            </div>
-                        </div>
+                        <div className="glass-card rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-white">الوصول الأسبوعي</h3></div><BarChart data={weeklyData} /></div>
+                        <div className="glass-card rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-white">معدل التفاعل</h3></div><LineChart data={weeklyData} /></div>
                     </div>
-
-                    {/* Recent Posts */}
                     <div className="glass-card rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4">آخر المنشورات</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead>
-                                    <tr className="text-dark-400 text-sm border-b border-dark-700">
-                                        <th className="text-right pb-3 font-medium">المنشور</th>
-                                        <th className="text-right pb-3 font-medium">المنصة</th>
-                                        <th className="text-right pb-3 font-medium">الحالة</th>
-                                        <th className="text-right pb-3 font-medium">التفاعل</th>
-                                        <th className="text-right pb-3 font-medium">منذ</th>
+                                <thead><tr className="text-dark-400 text-sm border-b border-dark-700"><th className="text-right pb-3">المنشور</th><th className="text-right pb-3">المنصة</th><th className="text-right pb-3">الحالة</th><th className="text-right pb-3">التفاعل</th></tr></thead>
+                                <tbody>{recentPosts.map(p => (
+                                    <tr key={p.id} className="border-b border-dark-800 hover:bg-dark-800/50">
+                                        <td className="py-4 text-white font-medium">{p.title}</td>
+                                        <td className="py-4"><span className="px-3 py-1 rounded-full text-xs bg-brand-500/20 text-brand-400">{p.platform}</span></td>
+                                        <td className="py-4"><span className={`px-3 py-1 rounded-full text-xs ${p.status === 'منشور' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{p.status}</span></td>
+                                        <td className="py-4 text-dark-300">{p.engagement}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {recentPosts.map(post => (
-                                        <tr key={post.id} className="border-b border-dark-800 hover:bg-dark-800/50 transition-colors">
-                                            <td className="py-4 text-white font-medium">{post.title}</td>
-                                            <td className="py-4">
-                                                <span className="px-3 py-1 rounded-full text-xs bg-brand-500/20 text-brand-400">{post.platform}</span>
-                                            </td>
-                                            <td className="py-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs ${
-                                                    post.status === 'منشور' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                    post.status === 'جاهز' ? 'bg-amber-500/20 text-amber-400' :
-                                                    'bg-dark-500/20 text-dark-400'
-                                                }`}>{post.status}</span>
-                                            </td>
-                                            <td className="py-4 text-dark-300">{post.engagement}</td>
-                                            <td className="py-4 text-dark-400">{post.time}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+                                ))}</tbody>
                             </table>
                         </div>
                     </div>
@@ -433,750 +712,137 @@
             );
         }
 
-        // Content Calendar Page
         function CalendarPage() {
-            const [selectedDate, setSelectedDate] = useState(new Date());
-            const [events, setEvents] = useState(calendarEvents);
-            const [showModal, setShowModal] = useState(false);
-            const [newEvent, setNewEvent] = useState({ title: '', platform: 'إنستغرام', type: 'عرض', status: 'مسودة' });
-
-            const daysInMonth = new Date(2026, 7, 0).getDate();
-            const firstDay = new Date(2026, 6, 1).getDay();
             const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
-
-            const getEventsForDay = (day) => {
-                return events.filter(e => e.date === `2026-07-${String(day).padStart(2, '0')}`);
-            };
-
-            const statusColors = {
-                'جاهز': 'bg-amber-500',
-                'مسودة': 'bg-dark-500',
-                'منشور': 'bg-emerald-500',
-            };
-
-            const typeColors = {
-                'عرض': 'border-red-500',
-                'منتج': 'border-brand-500',
-                'نصيحة': 'border-emerald-500',
-                'رأي عميل': 'border-amber-500',
-                'عد تنازلي': 'border-pink-500',
-                'خلف الكواليس': 'border-cyan-500',
-            };
-
             return (
                 <div className="space-y-6 fade-in">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-2xl font-bold text-white">يوليو 2026</h3>
-                            <p className="text-dark-400">{events.length} منشور مجدول</p>
-                        </div>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors flex items-center gap-2"
-                        >
-                            <span>+</span>
-                            <span>إضافة منشور</span>
-                        </button>
-                    </div>
-
-                    {/* Calendar Grid */}
+                    <div className="flex items-center justify-between"><h3 className="text-2xl font-bold text-white">يوليو 2026</h3><button className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium flex items-center gap-2"><span>+</span>إضافة</button></div>
                     <div className="glass-card rounded-2xl p-6">
-                        {/* Days Header */}
-                        <div className="grid grid-cols-7 gap-2 mb-4">
-                            {days.map(day => (
-                                <div key={day} className="text-center text-dark-400 text-sm font-medium py-2">
-                                    {day}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Calendar Days */}
+                        <div className="grid grid-cols-7 gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-dark-400 text-sm py-2">{d}</div>)}</div>
                         <div className="grid grid-cols-7 gap-2">
-                            {Array.from({ length: firstDay }).map((_, i) => (
-                                <div key={`empty-${i}`} className="h-28 bg-dark-800/30 rounded-xl"></div>
-                            ))}
-                            {Array.from({ length: daysInMonth }).map((_, i) => {
-                                const day = i + 1;
-                                const dayEvents = getEventsForDay(day);
-                                const isToday = day === 9;
-
-                                return (
-                                    <div
-                                        key={day}
-                                        className={`h-28 rounded-xl p-2 transition-all hover:bg-dark-700/50 cursor-pointer ${
-                                            isToday ? 'bg-brand-500/10 border-2 border-brand-500' : 'bg-dark-800/50'
-                                        }`}
-                                    >
-                                        <span className={`text-sm font-medium ${isToday ? 'text-brand-400' : 'text-dark-300'}`}>
-                                            {day}
-                                        </span>
-                                        <div className="mt-1 space-y-1">
-                                            {dayEvents.slice(0, 2).map(event => (
-                                                <div
-                                                    key={event.id}
-                                                    className={`text-xs p-1 rounded bg-dark-700/80 border-r-2 ${typeColors[event.type] || 'border-dark-500'} truncate`}
-                                                >
-                                                    {event.title}
-                                                </div>
-                                            ))}
-                                            {dayEvents.length > 2 && (
-                                                <span className="text-xs text-dark-400">+{dayEvents.length - 2} أكثر</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {Array.from({length:3}).map((_,i) => <div key={`e${i}`} className="h-24 bg-dark-800/30 rounded-xl"></div>)}
+                            {Array.from({length:31}).map((_,i) => <div key={i} className={`h-24 rounded-xl p-2 ${i+1===9?'bg-brand-500/10 border-2 border-brand-500':'bg-dark-800/50 hover:bg-dark-700/50'} transition-all cursor-pointer`}><span className={`text-sm ${i+1===9?'text-brand-400':'text-dark-300'}`}>{i+1}</span></div>)}
                         </div>
                     </div>
-
-                    {/* Events List */}
-                    <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">المنشورات المجدولة</h3>
-                        <div className="space-y-3">
-                            {events.map(event => (
-                                <div key={event.id} className="flex items-center gap-4 p-4 bg-dark-800/50 rounded-xl hover:bg-dark-800 transition-colors">
-                                    <div className={`w-2 h-10 rounded-full ${statusColors[event.status]}`}></div>
-                                    <div className="flex-1">
-                                        <p className="text-white font-medium">{event.title}</p>
-                                        <p className="text-dark-400 text-sm">{event.date} • {event.platform}</p>
-                                    </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs ${
-                                        event.status === 'منشور' ? 'bg-emerald-500/20 text-emerald-400' :
-                                        event.status === 'جاهز' ? 'bg-amber-500/20 text-amber-400' :
-                                        'bg-dark-500/20 text-dark-400'
-                                    }`}>{event.status}</span>
-                                    <span className="px-3 py-1 rounded-full text-xs bg-dark-700 text-dark-300">{event.type}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Add Event Modal */}
-                    {showModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="glass-card rounded-2xl p-6 w-full max-w-md mx-4 slide-in">
-                                <h3 className="text-xl font-bold text-white mb-4">إضافة منشور جديد</h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-dark-300 text-sm mb-2">عنوان المنشور</label>
-                                        <input
-                                            type="text"
-                                            value={newEvent.title}
-                                            onChange={e => setNewEvent({...newEvent, title: e.target.value})}
-                                            className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors"
-                                            placeholder="أدخل عنوان المنشور..."
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-dark-300 text-sm mb-2">المنصة</label>
-                                            <select
-                                                value={newEvent.platform}
-                                                onChange={e => setNewEvent({...newEvent, platform: e.target.value})}
-                                                className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors"
-                                            >
-                                                <option>إنستغرام</option>
-                                                <option>تيك توك</option>
-                                                <option>فيسبوك</option>
-                                                <option>تويتر</option>
-                                                <option>جميع المنصات</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-dark-300 text-sm mb-2">النوع</label>
-                                            <select
-                                                value={newEvent.type}
-                                                onChange={e => setNewEvent({...newEvent, type: e.target.value})}
-                                                className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors"
-                                            >
-                                                <option>عرض</option>
-                                                <option>منتج</option>
-                                                <option>نصيحة</option>
-                                                <option>رأي عميل</option>
-                                                <option>عد تنازلي</option>
-                                                <option>خلف الكواليس</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-3 mt-6">
-                                        <button
-                                            onClick={() => setShowModal(false)}
-                                            className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white transition-colors"
-                                        >
-                                            إلغاء
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                if (newEvent.title) {
-                                                    setEvents([...events, {
-                                                        id: events.length + 1,
-                                                        date: '2026-07-15',
-                                                        ...newEvent
-                                                    }]);
-                                                    setShowModal(false);
-                                                    setNewEvent({ title: '', platform: 'إنستغرام', type: 'عرض', status: 'مسودة' });
-                                                }
-                                            }}
-                                            className="flex-1 px-4 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white transition-colors"
-                                        >
-                                            إضافة
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         }
 
-        // Templates Page
         function TemplatesPage() {
-            const [selectedTemplate, setSelectedTemplate] = useState(null);
-            const [filter, setFilter] = useState('الكل');
-
-            const categories = ['الكل', 'عرض', 'منتج', 'نصيحة', 'رأي عميل', 'خلف الكواليس', 'عد تنازلي'];
-            const filteredTemplates = filter === 'الكل' ? templates : templates.filter(t => t.category === filter);
-
             return (
                 <div className="space-y-6 fade-in">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-2xl font-bold text-white">مكتبة القوالب</h3>
-                            <p className="text-dark-400">{templates.length} قالب جاهز</p>
+                    <h3 className="text-2xl font-bold text-white">مكتبة القوالب</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{templates.map(t => (
+                        <div key={t.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
+                            <div className={`h-32 bg-gradient-to-br ${t.color} flex items-center justify-center`}><p className="text-white text-xl font-bold">{t.preview}</p></div>
+                            <div className="p-4"><h4 className="text-white font-bold">{t.name}</h4><p className="text-dark-400 text-sm mt-1">{t.description}</p><button className="w-full mt-3 px-4 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm hover:bg-brand-500/30">استخدام</button></div>
                         </div>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setFilter(cat)}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                                    filter === cat
-                                        ? 'bg-brand-500 text-white'
-                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                                }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Templates Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredTemplates.map(template => (
-                            <div
-                                key={template.id}
-                                className="glass-card rounded-2xl overflow-hidden hover-lift cursor-pointer"
-                                onClick={() => setSelectedTemplate(template)}
-                            >
-                                {/* Preview */}
-                                <div className={`h-40 bg-gradient-to-br ${template.color} flex items-center justify-center relative`}>
-                                    <div className="text-center">
-                                        <p className="text-white text-xl font-bold">{template.preview}</p>
-                                        <p className="text-white/70 text-sm mt-2">1080 × 1080</p>
-                                    </div>
-                                    <div className="absolute top-3 left-3 px-2 py-1 bg-black/30 rounded-lg text-xs text-white">
-                                        {template.category}
-                                    </div>
-                                </div>
-
-                                {/* Info */}
-                                <div className="p-4">
-                                    <h4 className="text-white font-bold text-lg">{template.name}</h4>
-                                    <p className="text-dark-400 text-sm mt-1">{template.description}</p>
-                                    <div className="flex gap-2 mt-4">
-                                        <button className="flex-1 px-3 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm hover:bg-brand-500/30 transition-colors">
-                                            استخدام
-                                        </button>
-                                        <button className="px-3 py-2 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors">
-                                            معاينة
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Template Preview Modal */}
-                    {selectedTemplate && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="glass-card rounded-2xl w-full max-w-2xl mx-4 slide-in">
-                                <div className={`h-64 bg-gradient-to-br ${selectedTemplate.color} flex items-center justify-center relative rounded-t-2xl`}>
-                                    <div className="text-center">
-                                        <p className="text-white text-3xl font-bold">{selectedTemplate.preview}</p>
-                                        <p className="text-white/70 text-lg mt-3">1080 × 1080</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setSelectedTemplate(null)}
-                                        className="absolute top-4 left-4 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                                <div className="p-6">
-                                    <h3 className="text-xl font-bold text-white">{selectedTemplate.name}</h3>
-                                    <p className="text-dark-400 mt-2">{selectedTemplate.description}</p>
-                                    
-                                    <div className="mt-6 p-4 bg-dark-800 rounded-xl">
-                                        <h4 className="text-dark-300 text-sm font-medium mb-2">عناصر القالب:</h4>
-                                        <ul className="space-y-2 text-sm text-dark-400">
-                                            <li>• <span className="text-dark-300">العنوان:</span> قابل للتعديل</li>
-                                            <li>• <span className="text-dark-300">السعر:</span> قابل للتعديل</li>
-                                            <li>• <span className="text-dark-300">الصورة:</span> قابلة للتعديل</li>
-                                            <li>• <span className="text-dark-300">اللون:</span> مطابق للهوية البصرية</li>
-                                            <li>• <span className="text-dark-300">الموقع:</span> ثابت (لا يُغيَّر)</li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="flex gap-3 mt-6">
-                                        <button
-                                            onClick={() => setSelectedTemplate(null)}
-                                            className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white transition-colors"
-                                        >
-                                            إغلاق
-                                        </button>
-                                        <button className="flex-1 px-4 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white transition-colors">
-                                            استخدام القالب
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    ))}</div>
                 </div>
             );
         }
 
-        // Captions Page
         function CaptionsPage() {
-            const [inputText, setInputText] = useState('');
-            const [selectedPlatform, setSelectedPlatform] = useState('إنستغرام');
-            const [generatedCaptions, setGeneratedCaptions] = useState([]);
-            const [isGenerating, setIsGenerating] = useState(false);
-
-            const generateCaptions = () => {
-                if (!inputText.trim()) return;
-                setIsGenerating(true);
-                
-                setTimeout(() => {
-                    const newCaptions = [
-                        {
-                            id: Date.now(),
-                            title: 'كابشن 1 - رسمي واحترافي',
-                            caption: `📢 ${inputText}\n\nنقدم لكم أفضل المنتجات بجودة عالية وأسعار منافسة\n\n✅ ضمان على جميع المنتجات\n✅ شحن سريع وآمن\n✅ خدمة عملاء على مدار الساعة\n\n🛒 اطلب الآن!`,
-                            hashtags: '#تسوق_اونلاين #عروض #جودة_عالية #شحن_سريع #ماركتنج',
-                            platform: selectedPlatform,
-                        },
-                        {
-                            id: Date.now() + 1,
-                            title: 'كابشن 2 - حماسي وشبابي',
-                            caption: `🔥🔥 ${inputText} 🔥🔥\n\nلا تفوّت الفرصة! ✨\nاللي يبي شي يختلف... لقيته عندنا 💯\n\n📦 طلبك يوصلك لعند الباب\n💰 أسعار خيالية\n⚡ الكمية محدودة!`,
-                            hashtags: '#عرض_حصري #تسوق_الان #مغرية #عروض_لا_تُفوّت',
-                            platform: selectedPlatform,
-                        },
-                        {
-                            id: Date.now() + 2,
-                            title: 'كابشن 3 - عاطفي ومحسّن',
-                            caption: `💜 من قلبنا إلى قلبكم...\n\n${inputText}\n\nنعرف إنكم تستاهلون الأفضل، عشان كذا حطينا لكم كل حبنا في كل منتج ❤️\n\n🤝 ثقتكم غالية علينا`,
-                            hashtags: '#عملائنا_أغلى #ثقة #حب #متجر_مميز',
-                            platform: selectedPlatform,
-                        },
-                    ];
-                    setGeneratedCaptions(newCaptions);
-                    setIsGenerating(false);
-                }, 1500);
+            const [input, setInput] = useState('');
+            const [results, setResults] = useState(null);
+            const generate = () => {
+                if (!input.trim()) return;
+                setResults([
+                    { title: 'رسمي', caption: `📢 ${input}\n\nنقدم لكم أفضل المنتجات بجودة عالية\n\n🛒 اطلب الآن!`, hashtags: '#تسوق #عروض #جودة' },
+                    { title: 'حماسي', caption: `🔥 ${input} 🔥\n\nلا تفوّت الفرصة! ✨`, hashtags: '#عرض_حصري #تسوق_الان' },
+                    { title: 'عاطفي', caption: `💜 ${input}\n\nنعرف إنكم تستاهلون الأفضل ❤️`, hashtags: '#عملائنا_أغلى #ثقة' },
+                ]);
             };
-
-            const copyToClipboard = (text) => {
-                navigator.clipboard.writeText(text);
-                alert('تم النسخ!');
-            };
-
+            const copy = (t) => { navigator.clipboard.writeText(t); alert('تم النسخ!'); };
             return (
                 <div className="space-y-6 fade-in">
-                    {/* Input Section */}
                     <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">✍️ اكتب فكرة المنشور</h3>
-                        <div className="space-y-4">
-                            <textarea
-                                value={inputText}
-                                onChange={e => setInputText(e.target.value)}
-                                className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors h-32 resize-none"
-                                placeholder="مثال: عرض خصم 20% على سماعات البلوتوث الجديدة..."
-                            />
-                            <div className="flex items-center gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-dark-300 text-sm mb-2">المنصة</label>
-                                    <select
-                                        value={selectedPlatform}
-                                        onChange={e => setSelectedPlatform(e.target.value)}
-                                        className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors"
-                                    >
-                                        <option>إنستغرام</option>
-                                        <option>تيك توك</option>
-                                        <option>فيسبوك</option>
-                                        <option>تويتر</option>
-                                    </select>
-                                </div>
-                                <button
-                                    onClick={generateCaptions}
-                                    disabled={isGenerating || !inputText.trim()}
-                                    className="px-8 py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors flex items-center gap-2 mt-6"
-                                >
-                                    {isGenerating ? (
-                                        <>
-                                            <span className="animate-spin">⏳</span>
-                                            <span>جاري التوليد...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>✨</span>
-                                            <span>توليد الكابشنات</span>
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
+                        <textarea value={input} onChange={e => setInput(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 h-32 resize-none" placeholder="اكتب فكرة المنشور..." />
+                        <button onClick={generate} className="mt-4 px-6 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">✨ توليد الكابشنات</button>
                     </div>
-
-                    {/* Generated Captions */}
-                    {generatedCaptions.length > 0 && (
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-white">📝 الكابشنات المُولَّدة</h3>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                {generatedCaptions.map((cap, i) => (
-                                    <div key={cap.id} className="glass-card rounded-2xl p-5 slide-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-brand-400 font-bold text-sm">{cap.title}</span>
-                                            <span className="px-2 py-1 bg-dark-700 rounded-lg text-xs text-dark-300">{cap.platform}</span>
-                                        </div>
-                                        <div className="bg-dark-800 rounded-xl p-4 mb-4">
-                                            <p className="text-white text-sm whitespace-pre-line leading-relaxed">{cap.caption}</p>
-                                        </div>
-                                        <div className="bg-dark-800/50 rounded-xl p-3 mb-4">
-                                            <p className="text-brand-300 text-xs">{cap.hashtags}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => copyToClipboard(cap.caption)}
-                                                className="flex-1 px-3 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm hover:bg-brand-500/30 transition-colors"
-                                            >
-                                                نسخ الكابشن
-                                            </button>
-                                            <button
-                                                onClick={() => copyToClipboard(cap.hashtags)}
-                                                className="px-3 py-2 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors"
-                                            >
-                                                نسخ الهاشتاجات
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                    {results && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">{results.map((c,i) => (
+                        <div key={i} className="glass-card rounded-2xl p-5 slide-in">
+                            <h4 className="text-brand-400 font-bold mb-3">{c.title}</h4>
+                            <div className="bg-dark-800 rounded-xl p-4 mb-3"><p className="text-white text-sm whitespace-pre-line">{c.caption}</p></div>
+                            <p className="text-brand-300 text-xs mb-3">{c.hashtags}</p>
+                            <button onClick={() => copy(c.caption)} className="w-full px-3 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button>
                         </div>
-                    )}
-
-                    {/* Quick Templates */}
-                    <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">⚡ قوالب سريعة</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {['عرض/خصم', 'منتج جديد', 'رأي عميل', 'نصيحة', 'عد تنازلي', 'خلف الكواليس', 'شكر وتقدير', 'دعوة للشراء'].map((template, i) => (
-                                <button
-                                    key={i}
-                                    className="p-3 bg-dark-800 hover:bg-dark-700 rounded-xl text-dark-300 hover:text-white text-sm transition-all"
-                                >
-                                    {template}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    ))}</div>}
                 </div>
             );
         }
 
-        // Messages Page
+        function HashtagsPage() {
+            const [search, setSearch] = useState('');
+            const tags = ['#تسوق_اونلاين', '#عروض', '#منتجات', '#خصم', '#شحن_سريع', '#جودة_عالية', '#ماركتنج', '#سوشيال_ميديا'];
+            const filtered = tags.filter(t => t.includes(search));
+            return (
+                <div className="space-y-6 fade-in">
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="ابحث عن هاشتاج..." />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{filtered.map((t,i) => (
+                        <div key={i} className="glass-card rounded-xl p-4 hover-lift cursor-pointer" onClick={() => { navigator.clipboard.writeText(t); alert('تم النسخ!'); }}>
+                            <p className="text-brand-400 font-bold">{t}</p>
+                            <p className="text-dark-400 text-sm mt-1">اضغط للنسخ</p>
+                        </div>
+                    ))}</div>
+                </div>
+            );
+        }
+
         function MessagesPage() {
-            const [selectedCategory, setSelectedCategory] = useState('الكل');
-            const [editingTemplate, setEditingTemplate] = useState(null);
-            const [templates, setTemplates] = useState(messageTemplates);
-
-            const categories = ['الكل', 'استفسار سعر', 'شحن', 'توفر المقاس', 'شكوى', 'شكر'];
-            const filteredTemplates = selectedCategory === 'الكل' ? templates : templates.filter(t => t.category === selectedCategory);
-
-            const copyToClipboard = (text) => {
-                navigator.clipboard.writeText(text);
-                alert('تم النسخ!');
-            };
-
             return (
                 <div className="space-y-6 fade-in">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-2xl font-bold text-white">إدارة الرسائل</h3>
-                            <p className="text-dark-400">ردود جاهزة على الاستفسارات الشائعة</p>
+                    <h3 className="text-2xl font-bold text-white">إدارة الرسائل</h3>
+                    <div className="space-y-4">{messageTemplates.map(t => (
+                        <div key={t.id} className="glass-card rounded-2xl p-5">
+                            <div className="flex items-center justify-between mb-3"><h4 className="text-white font-bold">{t.category}</h4><button onClick={() => { navigator.clipboard.writeText(t.template); alert('تم النسخ!'); }} className="px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg text-xs">نسخ</button></div>
+                            <div className="bg-dark-800 rounded-xl p-4"><p className="text-dark-200 text-sm whitespace-pre-line">{t.template}</p></div>
                         </div>
-                        <button className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors flex items-center gap-2">
-                            <span>+</span>
-                            <span>إضافة قالب</span>
-                        </button>
-                    </div>
+                    ))}</div>
+                </div>
+            );
+        }
 
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="glass-card rounded-xl p-4 text-center">
-                            <p className="text-2xl font-bold text-white">47</p>
-                            <p className="text-dark-400 text-sm">رسالة جديدة</p>
+        function AnalyticsPage() {
+            const platformStats = [
+                { name: 'إنستغرام', followers: '12,345', engagement: '5.2%', color: 'from-pink-500 to-purple-500' },
+                { name: 'تيك توك', followers: '8,234', engagement: '7.8%', color: 'from-dark-700 to-dark-900' },
+                { name: 'فيسبوك', followers: '3,456', engagement: '3.1%', color: 'from-blue-500 to-blue-700' },
+            ];
+            return (
+                <div className="space-y-6 fade-in">
+                    <h3 className="text-2xl font-bold text-white">تحليل الأداء</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{platformStats.map((p,i) => (
+                        <div key={i} className="glass-card rounded-xl p-5 hover-lift">
+                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center text-white font-bold mb-3`}>{p.name.charAt(0)}</div>
+                            <h4 className="text-white font-bold">{p.name}</h4>
+                            <p className="text-dark-400 text-sm mt-2">المتابعون: <span className="text-white">{p.followers}</span></p>
+                            <p className="text-dark-400 text-sm">التفاعل: <span className="text-emerald-400">{p.engagement}</span></p>
                         </div>
-                        <div className="glass-card rounded-xl p-4 text-center">
-                            <p className="text-2xl font-bold text-emerald-400">32</p>
-                            <p className="text-dark-400 text-sm">تم الرد</p>
-                        </div>
-                        <div className="glass-card rounded-xl p-4 text-center">
-                            <p className="text-2xl font-bold text-amber-400">12</p>
-                            <p className="text-dark-400 text-sm">بانتظار الرد</p>
-                        </div>
-                        <div className="glass-card rounded-xl p-4 text-center">
-                            <p className="text-2xl font-bold text-brand-400">3</p>
-                            <p className="text-dark-400 text-sm">شكاوى</p>
-                        </div>
-                    </div>
-
-                    {/* Categories */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                                    selectedCategory === cat
-                                        ? 'bg-brand-500 text-white'
-                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                                }`}
-                            >
-                                {cat}
-                            </button>
+                    ))}</div>
+                    <div className="glass-card rounded-2xl p-6"><h3 className="text-lg font-bold text-white mb-4">أفضل أوقات النشر</h3>
+                        {[{t:'7 صباحاً',s:65},{t:'12 ظهراً',s:80},{t:'5 مساءً',s:90},{t:'8 مساءً',s:95}].map((item,i) => (
+                            <div key={i} className="flex items-center gap-4 mb-3"><span className="text-dark-300 text-sm w-20">{item.t}</span><div className="flex-1 h-6 bg-dark-800 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-brand-500 to-brand-400 rounded-full flex items-center justify-end pr-3" style={{width:`${item.s}%`}}><span className="text-white text-xs">{item.s}%</span></div></div></div>
                         ))}
-                    </div>
-
-                    {/* Templates List */}
-                    <div className="space-y-4">
-                        {filteredTemplates.map(template => (
-                            <div key={template.id} className="glass-card rounded-2xl p-5 slide-in">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400">
-                                            💬
-                                        </div>
-                                        <div>
-                                            <h4 className="text-white font-bold">{template.category}</h4>
-                                            <p className="text-dark-400 text-xs">قالب رد جاهز</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => copyToClipboard(template.template)}
-                                            className="px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg text-xs hover:bg-brand-500/30 transition-colors"
-                                        >
-                                            نسخ
-                                        </button>
-                                        <button className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg text-xs hover:bg-dark-600 transition-colors">
-                                            تعديل
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="bg-dark-800 rounded-xl p-4">
-                                    <p className="text-dark-200 text-sm whitespace-pre-line leading-relaxed">{template.template}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Recent Messages */}
-                    <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">📩 رسائل حديثة</h3>
-                        <div className="space-y-3">
-                            {[
-                                { id: 1, user: 'سارة أحمد', message: 'السلام عليكم، ب请问 السعر كم؟', time: '5 دقائق', status: 'جديد' },
-                                { id: 2, user: 'خالد محمد', message: 'متى يوصل الطلب للرياض؟', time: '15 دقيقة', status: 'جديد' },
-                                { id: 3, user: 'نورة سعيد', message: 'المنتج وصلني بحالة سيئة', time: 'ساعة', status: 'شكة' },
-                            ].map(msg => (
-                                <div key={msg.id} className="flex items-center gap-4 p-4 bg-dark-800/50 rounded-xl hover:bg-dark-800 transition-colors">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
-                                        {msg.user.charAt(0)}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-white font-medium text-sm">{msg.user}</p>
-                                            <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                                msg.status === 'شكة' ? 'bg-red-500/20 text-red-400' : 'bg-brand-500/20 text-brand-400'
-                                            }`}>{msg.status}</span>
-                                        </div>
-                                        <p className="text-dark-400 text-sm truncate">{msg.message}</p>
-                                    </div>
-                                    <span className="text-dark-500 text-xs">{msg.time}</span>
-                                    <button className="px-3 py-1.5 bg-brand-500 text-white rounded-lg text-xs hover:bg-brand-600 transition-colors">
-                                        رد
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </div>
             );
         }
 
-        // Analytics Page
-        function AnalyticsPage() {
-            const [period, setPeriod] = useState('أسبوعي');
-
-            const platformStats = [
-                { name: 'إنستغرام', followers: '12,345', engagement: '5.2%', posts: 28, color: 'from-pink-500 to-purple-500' },
-                { name: 'تيك توك', followers: '8,234', engagement: '7.8%', posts: 15, color: 'from-dark-700 to-dark-900' },
-                { name: 'فيسبوك', followers: '3,456', engagement: '3.1%', posts: 20, color: 'from-blue-500 to-blue-700' },
-                { name: 'تويتر', followers: '554', engagement: '2.4%', posts: 35, color: 'from-sky-400 to-sky-600' },
-            ];
-
-            const topPosts = [
-                { id: 1, title: 'عرض الصيف - خصم 30%', platform: 'إنستغرام', reach: '15,234', engagement: '8.2%', saves: 234 },
-                { id: 2, title: 'منتج جديد - سماعات', platform: 'تيك توك', reach: '23,456', engagement: '12.1%', saves: 567 },
-                { id: 3, title: 'رأي عميل - فيديو', platform: 'فيسبوك', reach: '8,901', engagement: '6.5%', saves: 123 },
-            ];
-
-            const bestTimes = [
-                { time: '7:00 صباحاً', score: 65 },
-                { time: '12:00 ظهراً', score: 80 },
-                { time: '5:00 مساءً', score: 90 },
-                { time: '8:00 مساءً', score: 95 },
-                { time: '10:00 مساءً', score: 75 },
-            ];
-
+        function SettingsPage() {
+            const { user } = useAuth();
             return (
                 <div className="space-y-6 fade-in">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-2xl font-bold text-white">تحليل الأداء</h3>
-                            <p className="text-dark-400">نظرة شاملة على أداء حساباتك</p>
-                        </div>
-                        <div className="flex gap-2">
-                            {['أسبوعي', 'شهري', 'سنوي'].map(p => (
-                                <button
-                                    key={p}
-                                    onClick={() => setPeriod(p)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                                        period === p ? 'bg-brand-500 text-white' : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                                    }`}
-                                >
-                                    {p}
-                                </button>
-                            ))}
-                        </div>
+                    <h3 className="text-2xl font-bold text-white">الإعدادات</h3>
+                    <div className="glass-card rounded-2xl p-6 space-y-4">
+                        <h4 className="text-lg font-bold text-white">الملف الشخصي</h4>
+                        <div><label className="block text-dark-300 text-sm mb-2">الاسم</label><input type="text" defaultValue={user?.displayName || ''} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
+                        <div><label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label><input type="email" defaultValue={user?.email || ''} disabled className="w-full bg-dark-800/50 border border-dark-600 rounded-xl px-4 py-3 text-dark-400" /></div>
+                        <button className="px-6 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">حفظ التغييرات</button>
                     </div>
-
-                    {/* Overview Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="glass-card rounded-xl p-4">
-                            <p className="text-dark-400 text-sm">إجمالي الوصول</p>
-                            <p className="text-2xl font-bold text-white mt-1">45,234</p>
-                            <p className="text-emerald-400 text-xs mt-1">↑ 15.3%</p>
-                        </div>
-                        <div className="glass-card rounded-xl p-4">
-                            <p className="text-dark-400 text-sm">إجمالي التفاعل</p>
-                            <p className="text-2xl font-bold text-white mt-1">8,901</p>
-                            <p className="text-emerald-400 text-xs mt-1">↑ 8.7%</p>
-                        </div>
-                        <div className="glass-card rounded-xl p-4">
-                            <p className="text-dark-400 text-sm">النقرات على الرابط</p>
-                            <p className="text-2xl font-bold text-white mt-1">1,234</p>
-                            <p className="text-emerald-400 text-xs mt-1">↑ 22.1%</p>
-                        </div>
-                        <div className="glass-card rounded-xl p-4">
-                            <p className="text-dark-400 text-sm">المحادثات الجديدة</p>
-                            <p className="text-2xl font-bold text-white mt-1">47</p>
-                            <p className="text-emerald-400 text-xs mt-1">↑ 12.5%</p>
-                        </div>
-                    </div>
-
-                    {/* Platform Performance */}
                     <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">📊 أداء المنصات</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {platformStats.map((platform, i) => (
-                                <div key={i} className="bg-dark-800/50 rounded-xl p-4 hover:bg-dark-800 transition-colors">
-                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center text-white font-bold mb-3`}>
-                                        {platform.name.charAt(0)}
-                                    </div>
-                                    <h4 className="text-white font-bold">{platform.name}</h4>
-                                    <div className="mt-3 space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-dark-400">المتابعون</span>
-                                            <span className="text-white">{platform.followers}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-dark-400">التفاعل</span>
-                                            <span className="text-emerald-400">{platform.engagement}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-dark-400">المنشورات</span>
-                                            <span className="text-white">{platform.posts}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Top Posts */}
-                    <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">🏆 أفضل المنشورات أداءً</h3>
-                        <div className="space-y-3">
-                            {topPosts.map((post, i) => (
-                                <div key={post.id} className="flex items-center gap-4 p-4 bg-dark-800/50 rounded-xl hover:bg-dark-800 transition-colors">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold">
-                                        #{i + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-white font-medium">{post.title}</p>
-                                        <p className="text-dark-400 text-sm">{post.platform}</p>
-                                    </div>
-                                    <div className="text-left space-y-1">
-                                        <p className="text-white text-sm">الوصول: <span className="text-brand-400">{post.reach}</span></p>
-                                        <p className="text-white text-sm">التفاعل: <span className="text-emerald-400">{post.engagement}</span></p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-amber-400 text-lg">💾</p>
-                                        <p className="text-dark-400 text-xs">{post.saves}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Best Times */}
-                    <div className="glass-card rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">⏰ أفضل أوقات النشر</h3>
-                        <div className="space-y-3">
-                            {bestTimes.map((item, i) => (
-                                <div key={i} className="flex items-center gap-4">
-                                    <span className="text-dark-300 text-sm w-24">{item.time}</span>
-                                    <div className="flex-1 h-8 bg-dark-800 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-l from-brand-500 to-brand-400 rounded-full flex items-center justify-end pr-3 transition-all duration-1000"
-                                            style={{ width: `${item.score}%` }}
-                                        >
-                                            <span className="text-white text-xs font-bold">{item.score}%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-dark-400 text-sm mt-4">💡 أفضل وقت للنشر: 8:00 مساءً (التفاعل الأعلى)</p>
+                        <h4 className="text-lg font-bold text-white mb-4">الاشتراك</h4>
+                        <div className="flex items-center gap-4 p-4 bg-dark-800 rounded-xl"><div className="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400 text-xl">⭐</div><div className="flex-1"><p className="text-white font-bold">الخطة المجانية</p><p className="text-dark-400 text-sm">3 منشورات شهريًا</p></div><button className="px-4 py-2 bg-brand-500 rounded-xl text-white text-sm">ترقية</button></div>
                     </div>
                 </div>
             );
@@ -1184,42 +850,51 @@
 
         // ==================== MAIN APP ====================
         function App() {
-            const [activePage, setActivePage] = useState('dashboard');
-            const [sidebarOpen, setSidebarOpen] = useState(true);
+            const [currentPage, setCurrentPage] = useState('landing');
+
+            const navigate = (page) => { setCurrentPage(page); window.scrollTo(0, 0); };
 
             const renderPage = () => {
-                switch (activePage) {
-                    case 'dashboard': return <DashboardPage />;
-                    case 'calendar': return <CalendarPage />;
-                    case 'templates': return <TemplatesPage />;
-                    case 'captions': return <CaptionsPage />;
-                    case 'messages': return <MessagesPage />;
-                    case 'analytics': return <AnalyticsPage />;
-                    default: return <DashboardPage />;
+                switch (currentPage) {
+                    case 'landing': return <LandingPage onNavigate={navigate} />;
+                    case 'login': return <LoginPage onNavigate={navigate} />;
+                    case 'register': return <RegisterPage onNavigate={navigate} />;
+                    case 'dashboard': return <DashboardApp onNavigate={navigate} />;
+                    default: return <LandingPage onNavigate={navigate} />;
                 }
             };
 
+            return <div>{renderPage()}</div>;
+        }
+
+        function DashboardApp({ onNavigate }) {
+            const [activePage, setActivePage] = useState('dashboard');
+            const [sidebarOpen, setSidebarOpen] = useState(true);
+            
+            const pages = { dashboard: DashboardPage, calendar: CalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
+            const Page = pages[activePage] || DashboardPage;
+
             return (
                 <div className="flex min-h-screen bg-dark-950">
-                    <Sidebar
-                        activePage={activePage}
-                        setActivePage={setActivePage}
-                        isOpen={sidebarOpen}
-                        setIsOpen={setSidebarOpen}
-                    />
+                    <Sidebar activePage={activePage} setActivePage={setActivePage} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
                     <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'mr-64' : 'mr-20'}`}>
-                        <Header activePage={activePage} />
-                        <div className="p-6">
-                            {renderPage()}
-                        </div>
+                        <Header activePage={activePage} onNavigate={onNavigate} />
+                        <div className="p-6"><Page /></div>
                     </main>
                 </div>
             );
         }
 
-        // Render
+        function Root() {
+            return (
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            );
+        }
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(<Root />);
     </script>
 </body>
 </html>
