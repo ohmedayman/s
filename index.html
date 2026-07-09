@@ -546,11 +546,13 @@
             const { user } = useAuth();
             const menuItems = [
                 { id: 'dashboard', name: 'لوحة التحكم', icon: '📊' },
-                { id: 'calendar', name: 'التقويم', icon: '📅' },
+                { id: 'ai', name: 'مولّد المحتوى AI', icon: '🤖' },
+                { id: 'calendar', name: 'التقويم المتقدم', icon: '📅' },
                 { id: 'templates', name: 'القوالب', icon: '🎨' },
                 { id: 'captions', name: 'الكابشنات', icon: '✍️' },
                 { id: 'hashtags', name: 'الهاشتاجات', icon: '#️⃣' },
                 { id: 'media', name: 'الوسائط', icon: '🖼️' },
+                { id: 'team', name: 'فريق العمل', icon: '👥' },
                 { id: 'messages', name: 'الرسائل', icon: '💬' },
                 { id: 'analytics', name: 'التحليل', icon: '📈' },
                 { id: 'settings', name: 'الإعدادات', icon: '⚙️' },
@@ -582,7 +584,7 @@
         function Header({ activePage, onNavigate }) {
             const { user, logout } = useAuth();
             const { addToast } = useToast();
-            const pageNames = { dashboard:'لوحة التحكم', calendar:'التقويم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', media:'الوسائط', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
+            const pageNames = { dashboard:'لوحة التحكم', ai:'مولّد المحتوى AI', calendar:'التقويم المتقدم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', media:'الوسائط', team:'فريق العمل', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
             const handleLogout = async () => { await logout(); addToast('تم تسجيل الخروج'); onNavigate('landing'); };
             return (
                 <header className="h-16 bg-dark-900/80 backdrop-blur-xl border-b border-dark-700 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
@@ -864,6 +866,419 @@
             );
         }
 
+        // ==================== AI CONTENT GENERATOR ====================
+        function AIContentPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
+            const [prompt, setPrompt] = useState('');
+            const [platform, setPlatform] = useState('Instagram');
+            const [tone, setTone] = useState('احترافي');
+            const [results, setResults] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [history, setHistory] = useState([]);
+
+            useEffect(() => {
+                if (!user) return;
+                const unsub = db.collection('ai_history').where('userId', '==', user.uid).orderBy('createdAt', 'desc').limit(10).onSnapshot(s => setHistory(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+                return unsub;
+            }, [user]);
+
+            const generateContent = async () => {
+                if (!prompt.trim()) return;
+                setLoading(true);
+                
+                // Simulate AI generation (in production, connect to OpenAI API)
+                await new Promise(r => setTimeout(r, 2000));
+                
+                const tones = {
+                    'احترافي': { prefix: '📢', style: 'رسمي ومحترف' },
+                    'حماسي': { prefix: '🔥', style: 'مشوق وحKindOfClass' },
+                    'ودود': { prefix: '😊', style: 'ودود وقريب' },
+                    'فخري': { prefix: '✨', style: 'فاخر وراقي' },
+                };
+                
+                const t = tones[tone];
+                const generated = {
+                    caption: `${t.prefix} ${prompt}\n\n${getCaptionByPlatform(platform, tone)}`,
+                    hashtags: getHashtags(prompt),
+                    ideas: getContentIdeas(prompt),
+                    bestTime: getBestTime(platform),
+                };
+                
+                setResults(generated);
+                
+                // Save to history
+                await db.collection('ai_history').add({
+                    userId: user.uid,
+                    prompt,
+                    platform,
+                    tone,
+                    result: generated,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                setLoading(false);
+                addToast('تم توليد المحتوى بنجاح!');
+            };
+
+            const getCaptionByPlatform = (p, t) => {
+                const captions = {
+                    'Instagram': '\n\nنقدم لكم محتوى حصري على إنستغرام\n\n📸 تابعونا للمزيد\n💡 فعّلوا التنبيهات\n\n#إنستغرام #محتوى_أصلي',
+                    'TikTok': '\n\n🎬 فيديو جديد على تيك توك!\n\n🎵 لا تفوّتوا الفيديو\n👆 اضغط المتابعة\n\n#تيك_توك #ترند',
+                    'Facebook': '\n\n📢 منشور جديد على فيسبوك\n\n💬 شاركونا رأيكم\n👍 لا تنسوا الإعجاب\n\n#فيسبوك #مجتمع',
+                    'Twitter': '\n\n🐦 تغريدة جديدة\n\n🔄 ريتويت للمشاركة\n❤️ لايك إذا عجبكم\n\n#تويتر #بايو',
+                };
+                return captions[p] || captions['Instagram'];
+            };
+
+            const getHashtags = (p) => {
+                return `#${p.replace(/\s/g, '_')} #محتوى_أصلي #تسويق_الكتروني #سوشيال_ميديا # marque`;
+            };
+
+            const getContentIdeas = (p) => [
+                `فيديو قصير عن ${p}`,
+                `بوست كاروسيل بـ 5 صور`,
+                `ستوري تفاعلية مع استفتاء`,
+                `ريلز مع موسيقى ترند`,
+                `بوست نصيحة مفيدة`,
+            ];
+
+            const getBestTime = (p) => {
+                const times = { 'Instagram': '8 مساءً', 'TikTok': '7 مساءً', 'Facebook': '1 ظهراً', 'Twitter': '12 ظهراً' };
+                return times[p] || '8 مساءً';
+            };
+
+            const copy = (text) => { navigator.clipboard.writeText(text); addToast('تم النسخ!'); };
+
+            return (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="bg-gradient-to-r from-brand-500/20 to-pink-500/20 rounded-2xl p-6 border border-brand-500/20">
+                        <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">🤖 مولّد المحتوى بالذكاء الاصطناعي</h2>
+                        <p className="text-dark-300 mt-1">اكتب فكرتك ودع الذكاء الاصطناعي يصنع لك المحتوى</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 glass-card rounded-2xl p-4 md:p-6">
+                            <h3 className="text-lg font-bold text-white mb-4">✍️ اكتب فكرتك</h3>
+                            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 h-32 resize-none" placeholder="مثال: عرض خصم 30% على سماعات البلوتوث الجديدة مع ضمان سنة..." />
+                            
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <label className="block text-dark-300 text-sm mb-2">المنصة</label>
+                                    <select value={platform} onChange={e => setPlatform(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500">
+                                        <option>Instagram</option>
+                                        <option>TikTok</option>
+                                        <option>Facebook</option>
+                                        <option>Twitter</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-dark-300 text-sm mb-2">نبرة الصوت</label>
+                                    <select value={tone} onChange={e => setTone(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500">
+                                        <option>احترافي</option>
+                                        <option>حماسي</option>
+                                        <option>ودود</option>
+                                        <option>فخري</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button onClick={generateContent} disabled={loading || !prompt.trim()} className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-brand-500 to-pink-500 hover:from-brand-600 hover:to-pink-600 disabled:from-dark-600 disabled:to-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all flex items-center justify-center gap-2">
+                                {loading ? <><div className="spinner" style={{width:'20px',height:'20px',borderWidth:'2px',borderTopColor:'#fff'}}></div> جاري التوليد...</> : '✨ توليد المحتوى'}
+                            </button>
+                        </div>
+
+                        <div className="glass-card rounded-2xl p-4 md:p-6">
+                            <h3 className="text-lg font-bold text-white mb-4">📜 السجل</h3>
+                            <div className="space-y-3 max-h-64 overflow-y-auto">
+                                {history.length === 0 ? <p className="text-dark-400 text-sm text-center">لا يوجد سجل بعد</p> : 
+                                    history.map(h => (
+                                        <div key={h.id} className="p-3 bg-dark-800/50 rounded-xl cursor-pointer hover:bg-dark-800" onClick={() => { setPrompt(h.prompt); setPlatform(h.platform); setTone(h.tone); }}>
+                                            <p className="text-white text-sm truncate">{h.prompt}</p>
+                                            <p className="text-dark-400 text-xs mt-1">{h.platform} • {h.tone}</p>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    {results && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold text-white">📝 الكابشن</h3>
+                                    <button onClick={() => copy(results.caption)} className="px-3 py-1 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button>
+                                </div>
+                                <div className="bg-dark-800 rounded-xl p-4"><p className="text-white whitespace-pre-line leading-relaxed">{results.caption}</p></div>
+                            </div>
+
+                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in" style={{animationDelay:'0.1s'}}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold text-white">#️⃣ الهاشتاجات</h3>
+                                    <button onClick={() => copy(results.hashtags)} className="px-3 py-1 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button>
+                                </div>
+                                <div className="bg-dark-800 rounded-xl p-4"><p className="text-brand-300">{results.hashtags}</p></div>
+                            </div>
+
+                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in" style={{animationDelay:'0.2s'}}>
+                                <h3 className="text-lg font-bold text-white mb-4">💡 أفكار إضافية</h3>
+                                <div className="space-y-2">{results.ideas.map((idea, i) => (
+                                    <div key={i} className="flex items-center gap-2 p-3 bg-dark-800/50 rounded-xl">
+                                        <span className="text-brand-400">•</span>
+                                        <span className="text-white text-sm">{idea}</span>
+                                    </div>
+                                ))}</div>
+                            </div>
+
+                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in" style={{animationDelay:'0.3s'}}>
+                                <h3 className="text-lg font-bold text-white mb-4">⏰ أفضل وقت للنشر</h3>
+                                <div className="bg-gradient-to-r from-brand-500/20 to-pink-500/20 rounded-xl p-6 text-center">
+                                    <span className="text-4xl">⏰</span>
+                                    <p className="text-2xl font-bold text-white mt-2">{results.bestTime}</p>
+                                    <p className="text-dark-300 text-sm mt-1">على {platform}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==================== ADVANCED CALENDAR ====================
+        function AdvancedCalendarPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
+            const [posts, setPosts] = useState([]);
+            const [currentMonth, setCurrentMonth] = useState(new Date(2026, 6));
+            const [selectedDate, setSelectedDate] = useState(null);
+            const [showModal, setShowModal] = useState(false);
+            const [draggedPost, setDraggedPost] = useState(null);
+            const [newPost, setNewPost] = useState({ title: '', platform: 'Instagram', type: 'post', time: '09:00' });
+
+            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+            const platformColors = { 'Instagram': 'from-pink-500 to-purple-500', 'TikTok': 'from-dark-700 to-dark-900', 'Facebook': 'from-blue-500 to-blue-700', 'Twitter': 'from-sky-400 to-sky-600' };
+            const statusColors = { 'draft': 'bg-dark-500', 'scheduled': 'bg-amber-500', 'published': 'bg-emerald-500' };
+
+            useEffect(() => {
+                if (!user) return;
+                const unsub = db.collection('posts').where('userId', '==', user.uid).onSnapshot(s => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+                return unsub;
+            }, [user]);
+
+            const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+            const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+            const adjustedFirstDay = (firstDay + 1) % 7;
+
+            const getPostsForDay = (day) => {
+                const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                return posts.filter(p => p.date === dateStr);
+            };
+
+            const handleDragStart = (e, post) => { setDraggedPost(post); e.dataTransfer.effectAllowed = 'move'; };
+            const handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+            
+            const handleDrop = async (e, day) => {
+                e.preventDefault();
+                if (!draggedPost) return;
+                const newDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                await db.collection('posts').doc(draggedPost.id).update({ date: newDate });
+                setDraggedPost(null);
+                addToast('تم نقل المنشور!');
+            };
+
+            const addPost = async () => {
+                if (!newPost.title || !selectedDate) return;
+                const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(selectedDate).padStart(2,'0')}`;
+                await db.collection('posts').add({ ...newPost, date: dateStr, userId: user.uid, status: 'scheduled', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                setShowModal(false); setNewPost({ title: '', platform: 'Instagram', type: 'post', time: '09:00' });
+                addToast('تمت جدولة المنشور!');
+            };
+
+            const deletePost = async (id) => {
+                await db.collection('posts').doc(id).delete();
+                addToast('تم الحذف!');
+            };
+
+            const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+            const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+
+            return (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <button onClick={prevMonth} className="p-2 bg-dark-700 hover:bg-dark-600 rounded-xl">→</button>
+                            <h2 className="text-xl md:text-2xl font-bold text-white">{months[currentMonth.getMonth()]} {currentMonth.getFullYear()}</h2>
+                            <button onClick={nextMonth} className="p-2 bg-dark-700 hover:bg-dark-600 rounded-xl">←</button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-xs text-dark-400"><div className="w-3 h-3 rounded bg-dark-500"></div>مسودة</div>
+                            <div className="flex items-center gap-1 text-xs text-dark-400"><div className="w-3 h-3 rounded bg-amber-500"></div>مجدول</div>
+                            <div className="flex items-center gap-1 text-xs text-dark-400"><div className="w-3 h-3 rounded bg-emerald-500"></div>منشور</div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-dark-400 text-xs md:text-sm py-2 font-medium">{d}</div>)}</div>
+                        <div className="grid grid-cols-7 gap-1 md:gap-2">
+                            {Array.from({length: adjustedFirstDay}).map((_,i) => <div key={`e${i}`} className="h-16 md:h-28 bg-dark-800/20 rounded-xl"></div>)}
+                            {Array.from({length: daysInMonth}).map((_,i) => {
+                                const day = i + 1;
+                                const dayPosts = getPostsForDay(day);
+                                const isSelected = selectedDate === day;
+                                const isToday = day === 9 && currentMonth.getMonth() === 6;
+                                return (
+                                    <div 
+                                        key={day} 
+                                        className={`h-16 md:h-28 rounded-xl p-1 md:p-2 transition-all cursor-pointer ${isToday ? 'bg-brand-500/20 border-2 border-brand-500' : isSelected ? 'bg-brand-500/10 border border-brand-500' : 'bg-dark-800/50 hover:bg-dark-700/50'}`}
+                                        onClick={() => { setSelectedDate(day); setShowModal(true); }}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, day)}
+                                    >
+                                        <span className={`text-xs md:text-sm font-medium ${isToday ? 'text-brand-400' : 'text-dark-300'}`}>{day}</span>
+                                        <div className="mt-1 space-y-1 hidden md:block overflow-hidden">
+                                            {dayPosts.slice(0, 2).map(p => (
+                                                <div 
+                                                    key={p.id} 
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, p)}
+                                                    className={`text-xs p-1 rounded truncate bg-gradient-to-r ${platformColors[p.platform]||'bg-dark-600'} text-white cursor-move`}
+                                                >
+                                                    {p.title}
+                                                </div>
+                                            ))}
+                                            {dayPosts.length > 2 && <span className="text-xs text-dark-400">+{dayPosts.length - 2}</span>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <h3 className="text-lg font-bold text-white mb-4">📋 المنشورات المجدولة</h3>
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                            {posts.filter(p => p.status === 'scheduled').length === 0 ? (
+                                <p className="text-dark-400 text-center py-4">لا توجد منشورات مجدولة</p>
+                            ) : posts.filter(p => p.status === 'scheduled').map(p => (
+                                <div key={p.id} className="flex items-center gap-3 p-3 bg-dark-800/50 rounded-xl">
+                                    <div className={`w-2 h-full min-h-[40px] rounded-full ${statusColors[p.status]}`}></div>
+                                    <div className="flex-1"><p className="text-white font-medium text-sm">{p.title}</p><p className="text-dark-400 text-xs">{p.date} • {p.time} • {p.platform}</p></div>
+                                    <button onClick={() => deletePost(p.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg">🗑️</button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={`إضافة منصور ليوم ${selectedDate}`}>
+                        <div className="space-y-4">
+                            <div><label className="block text-dark-300 text-sm mb-2">العنوان</label><input type="text" value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="عنوان المنشور..." /></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="block text-dark-300 text-sm mb-2">المنصة</label><select value={newPost.platform} onChange={e => setNewPost({...newPost, platform: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>Twitter</option></select></div>
+                                <div><label className="block text-dark-300 text-sm mb-2">الوقت</label><input type="time" value={newPost.time} onChange={e => setNewPost({...newPost, time: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
+                            </div>
+                            <button onClick={addPost} className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">جدولة المنشور</button>
+                        </div>
+                    </Modal>
+                </div>
+            );
+        }
+
+        // ==================== TEAM COLLABORATION ====================
+        function TeamPage() {
+            const { user, userData } = useAuth();
+            const { addToast } = useToast();
+            const [team, setTeam] = useState([]);
+            const [showInvite, setShowInvite] = useState(false);
+            const [inviteEmail, setInviteEmail] = useState('');
+            const [inviteRole, setInviteRole] = useState('editor');
+            const [activities, setActivities] = useState([]);
+
+            useEffect(() => {
+                if (!user) return;
+                const unsubTeam = db.collection('teams').where('ownerId', '==', user.uid).onSnapshot(s => setTeam(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+                const unsubActivities = db.collection('activities').where('userId', '==', user.uid).orderBy('createdAt', 'desc').limit(10).onSnapshot(s => setActivities(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+                return () => { unsubTeam(); unsubActivities(); };
+            }, [user]);
+
+            const inviteMember = async () => {
+                if (!inviteEmail) return;
+                await db.collection('teams').add({
+                    ownerId: user.uid,
+                    email: inviteEmail,
+                    role: inviteRole,
+                    status: 'pending',
+                    invitedBy: user.displayName || user.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                setShowInvite(false); setInviteEmail('');
+                addToast('تم إرسال الدعوة!');
+            };
+
+            const removeMember = async (id) => {
+                await db.collection('teams').doc(id).delete();
+                addToast('تم إزالة العضو');
+            };
+
+            const roleNames = { 'admin': 'مدير', 'editor': 'محرر', 'viewer': 'مشاهد' };
+            const roleColors = { 'admin': 'from-red-500 to-pink-500', 'editor': 'from-brand-500 to-purple-500', 'viewer': 'from-emerald-500 to-teal-500' };
+
+            return (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="flex items-center justify-between">
+                        <div><h2 className="text-xl md:text-2xl font-bold text-white">👥 فريق العمل</h2><p className="text-dark-400 text-sm mt-1">{team.length} أعضاء</p></div>
+                        <button onClick={() => setShowInvite(true)} className="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium text-sm flex items-center gap-2"><span>+</span>دعوة عضو</button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="glass-card rounded-2xl p-5 text-center"><p className="text-3xl font-bold text-white">{team.length + 1}</p><p className="text-dark-400 text-sm">إجمالي الأعضاء</p></div>
+                        <div className="glass-card rounded-2xl p-5 text-center"><p className="text-3xl font-bold text-emerald-400">{team.filter(t => t.status === 'active').length}</p><p className="text-dark-400 text-sm">عضو نشط</p></div>
+                        <div className="glass-card rounded-2xl p-5 text-center"><p className="text-3xl font-bold text-amber-400">{team.filter(t => t.status === 'pending').length}</p><p className="text-dark-400 text-sm">بانتظار القبول</p></div>
+                    </div>
+
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <h3 className="text-lg font-bold text-white mb-4">أعضاء الفريق</h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-brand-500/10 to-pink-500/10 rounded-xl border border-brand-500/20">
+                                <div className="w-12 h-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">{user?.displayName?.charAt(0) || 'م'}</div>
+                                <div className="flex-1"><p className="text-white font-bold">{user?.displayName || 'أنت'}</p><p className="text-dark-400 text-sm">{user?.email}</p></div>
+                                <span className="px-3 py-1 bg-brand-500/20 text-brand-400 rounded-full text-xs font-medium">مالك</span>
+                            </div>
+                            {team.map(member => (
+                                <div key={member.id} className="flex items-center gap-4 p-4 bg-dark-800/50 rounded-xl hover:bg-dark-800 transition-colors">
+                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${roleColors[member.role]} flex items-center justify-center text-white font-bold`}>{member.email.charAt(0).toUpperCase()}</div>
+                                    <div className="flex-1"><p className="text-white font-medium">{member.email}</p><p className="text-dark-400 text-xs">دعوة من {member.invitedBy}</p></div>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${member.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{roleNames[member.role]}</span>
+                                    <button onClick={() => removeMember(member.id)} className="p-2 text-dark-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg">🗑️</button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <h3 className="text-lg font-bold text-white mb-4">📜 آخر النشاطات</h3>
+                        <div className="space-y-3">
+                            {activities.length === 0 ? <p className="text-dark-400 text-center py-4">لا توجد نشاطات بعد</p> : activities.map(a => (
+                                <div key={a.id} className="flex items-center gap-3 p-3 bg-dark-800/50 rounded-xl">
+                                    <span className="text-xl">{a.icon || '📝'}</span>
+                                    <div className="flex-1"><p className="text-white text-sm">{a.message}</p><p className="text-dark-400 text-xs">{a.createdAt?.toDate?.() ? new Date(a.createdAt.toDate()).toLocaleDateString('ar-SA') : 'اليوم'}</p></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <Modal isOpen={showInvite} onClose={() => setShowInvite(false)} title="دعوة عضو جديد">
+                        <div className="space-y-4">
+                            <div><label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label><input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="email@example.com" /></div>
+                            <div><label className="block text-dark-300 text-sm mb-2">الدور</label><select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"><option value="editor">محرر - يمكنه تعديل المنشورات</option><option value="viewer">مشاهد - يمكنه المشاهدة فقط</option><option value="admin">مدير - صلاحيات كاملة</option></select></div>
+                            <button onClick={inviteMember} className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">إرسال الدعوة</button>
+                        </div>
+                    </Modal>
+                </div>
+            );
+        }
+
         function SettingsPage() {
             const { user, userData, updateProfile } = useAuth();
             const { addToast } = useToast();
@@ -909,7 +1324,7 @@
         function DashboardLayout({ onNavigate }) {
             const [activePage, setActivePage] = useState('dashboard');
             const [sidebarOpen, setSidebarOpen] = useState(true);
-            const pages = { dashboard: DashboardPage, calendar: CalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, media: MediaPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
+            const pages = { dashboard: DashboardPage, ai: AIContentPage, calendar: AdvancedCalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, media: MediaPage, team: TeamPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
             const Page = pages[activePage] || DashboardPage;
             return (
                 <div className="flex min-h-screen bg-dark-950">
