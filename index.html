@@ -180,7 +180,7 @@
                         const doc = await db.collection('users').doc(user.uid).get();
                         if (doc.exists) setUserData(doc.data());
                         else {
-                            const newUserData = { name: user.displayName || 'مستخدم', email: user.email, plan: 'free', createdAt: new Date().toISOString() };
+                            const newUserData = { name: user.displayName || 'مستخدم', email: user.email, plan: 'free', createdAt: new Date().toISOString(), trialStart: null };
                             await db.collection('users').doc(user.uid).set(newUserData);
                             setUserData(newUserData);
                         }
@@ -194,13 +194,13 @@
             const registerWithEmail = async (email, password, name) => {
                 const res = await auth.createUserWithEmailAndPassword(email, password);
                 await res.user.updateProfile({ displayName: name });
-                await db.collection('users').doc(res.user.uid).set({ name, email, plan: 'free', createdAt: new Date().toISOString() });
+                await db.collection('users').doc(res.user.uid).set({ name, email, plan: 'free', createdAt: new Date().toISOString(), trialStart: null });
                 return res;
             };
             const loginWithGoogle = async () => {
                 const res = await auth.signInWithPopup(googleProvider);
                 const doc = await db.collection('users').doc(res.user.uid).get();
-                if (!doc.exists) await db.collection('users').doc(res.user.uid).set({ name: res.user.displayName, email: res.user.email, plan: 'free', createdAt: new Date().toISOString() });
+                if (!doc.exists) await db.collection('users').doc(res.user.uid).set({ name: res.user.displayName, email: res.user.email, plan: 'free', createdAt: new Date().toISOString(), trialStart: null });
                 return res;
             };
             const logout = () => auth.signOut();
@@ -404,9 +404,12 @@
                 <section id="pricing" className="py-24 md:py-32 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
                         <div className="text-center mb-20">
+                            <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full text-white text-sm font-bold mb-6 shadow-lg shadow-emerald-500/30">
+                                <span className="animate-bounce">🎉</span> عرض خاص: 14 يوم مجاني لجميع الخطط المدفوعة!
+                            </div>
                             <span className="inline-block px-4 py-2 bg-brand-50 text-brand-600 rounded-full text-sm font-bold mb-4">الأسعار</span>
                             <h2 className="text-4xl md:text-6xl font-black text-slate-800 mt-3">خطط تناسب الجميع</h2>
-                            <p className="text-slate-500 mt-4 text-lg">ابدأ مجانًا وترقّي حسب احتياجك - بالجنيه المصري</p>
+                            <p className="text-slate-500 mt-4 text-lg">ابدأ بـ 14 يوم مجاني على أي خطة مدفوعة - بدون بطاقة ائتمان</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                             {plans.map((plan, i) => (
@@ -418,8 +421,9 @@
                                         <span className={`text-lg ${plan.popular ? 'text-white/70' : 'text-slate-400'}`}>جنيه / {plan.period}</span>
                                     </div>
                                     {plan.originalPrice && <p className={`text-sm mb-4 line-through ${plan.popular ? 'text-white/50' : 'text-slate-400'}`}>{plan.originalPrice} جنيه</p>}
+                                    {plan.price !== '0' && <div className={`mb-4 px-4 py-2 rounded-xl text-center text-sm font-bold ${plan.popular ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600'}`}>🆓 14 يوم مجاني - ابدأ الآن!</div>}
                                     <ul className="space-y-4 mb-8">{plan.features.map((f, j) => <li key={j} className={`flex items-center gap-3 text-sm ${plan.popular ? 'text-white/90' : 'text-slate-600'}`}><span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${plan.popular ? 'bg-white/20' : 'bg-emerald-100 text-emerald-600'}`}>✓</span>{f}</li>)}</ul>
-                                    <button onClick={() => onNavigate('register')} className={`w-full py-4 rounded-xl font-bold transition-all ${plan.popular ? 'bg-white text-brand-600 hover:bg-slate-50' : 'bg-slate-800 text-white hover:bg-slate-700'}`}>{plan.popular ? 'ابدأ الآن' : 'ابدأ مجانًا'}</button>
+                                    <button onClick={() => onNavigate('register')} className={`w-full py-4 rounded-xl font-bold transition-all ${plan.popular ? 'bg-white text-brand-600 hover:bg-slate-50' : 'bg-slate-800 text-white hover:bg-slate-700'}`}>{plan.price !== '0' ? 'جرّب مجانًا 14 يوم' : 'ابدأ مجانًا'}</button>
                                 </div>
                             ))}
                         </div>
@@ -1006,6 +1010,18 @@
             const [apiKeyInput, setApiKeyInput] = useState(apiKey);
             const save = async () => { setSaving(true); await updateProfile({ name }); addToast('تم الحفظ!'); setSaving(false); };
             const saveApiKey = () => { localStorage.setItem('openai_api_key', apiKeyInput); setApiKey(apiKeyInput); addToast('تم حفظ المفتاح!'); };
+            
+            const trialStart = userData?.trialStart ? new Date(userData.trialStart) : null;
+            const trialEnd = trialStart ? new Date(trialStart.getTime() + 14 * 24 * 60 * 60 * 1000) : null;
+            const now = new Date();
+            const isTrialActive = trialEnd && now < trialEnd;
+            const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24))) : 0;
+
+            const startTrial = async () => {
+                await updateProfile({ trialStart: new Date().toISOString(), plan: 'pro' });
+                addToast('بدأت الفترة التجريبية! 14 يوم مجانًا');
+            };
+
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
                     <h3 className="text-xl md:text-2xl font-bold text-slate-800">الإعدادات</h3>
@@ -1025,8 +1041,37 @@
                         {apiKey && <p className="text-emerald-500 text-sm mt-2 flex items-center gap-2">✓ محفوظ ومفعّل</p>}
                     </div>
                     <div className="glass-card rounded-2xl p-6">
-                        <h4 className="text-lg font-bold text-slate-800 mb-4">الاشتراك</h4>
-                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl"><div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 text-xl">⭐</div><div className="flex-1"><p className="text-slate-800 font-bold">{userData?.plan === 'pro' ? 'الخطة المدفوعة' : 'الخطة المجانية'}</p><p className="text-slate-500 text-sm">{userData?.plan === 'pro' ? 'جميع الميزات' : '3 منشورات شهريًا'}</p></div><button className="px-5 py-2 btn-primary rounded-xl text-white text-sm font-bold">ترقية - 199 جنيه/شهر</button></div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-4">⭐ الاشتراك</h4>
+                        {isTrialActive ? (
+                            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-6 text-white">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xl font-bold">🟢 الفترة التجريبية نشطة</p>
+                                        <p className="text-white/80 mt-1">متبقي {trialDaysLeft} يوم من 14 يوم مجاني</p>
+                                    </div>
+                                    <div className="text-4xl font-black">{trialDaysLeft}</div>
+                                </div>
+                                <div className="mt-4 bg-white/20 rounded-full h-3 overflow-hidden">
+                                    <div className="h-full bg-white rounded-full transition-all" style={{ width: `${((14 - trialDaysLeft) / 14) * 100}%` }}></div>
+                                </div>
+                                <p className="text-white/70 text-sm mt-2 text-center">تنتهي في {trialEnd?.toLocaleDateString('ar-EG')}</p>
+                            </div>
+                        ) : userData?.plan === 'pro' ? (
+                            <div className="flex items-center gap-4 p-4 bg-brand-50 rounded-xl border border-brand-200">
+                                <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 text-xl">⭐</div>
+                                <div className="flex-1"><p className="text-slate-800 font-bold">الخطة المدفوعة</p><p className="text-slate-500 text-sm">جميع الميزات متاحة</p></div>
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl mb-4">
+                                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xl">📋</div>
+                                    <div className="flex-1"><p className="text-slate-800 font-bold">الخطة المجانية</p><p className="text-slate-500 text-sm">3 منشورات شهريًا فقط</p></div>
+                                </div>
+                                <button onClick={startTrial} className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                    🆓 ابدأ الفترة التجريبية - 14 يوم مجاني
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
