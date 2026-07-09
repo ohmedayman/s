@@ -12,17 +12,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { 'tajawal': ['Tajawal', 'sans-serif'] },
                     colors: {
+                        'primary': { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' },
+                        'accent': { 50:'#fdf4ff',100:'#fae8ff',200:'#f5d0fe',300:'#f0abfc',400:'#e879f9',500:'#d946ef',600:'#c026d3',700:'#a21caf',800:'#86198f',900:'#701a75' },
                         'brand': { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' },
-                        'dark': { 50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617' }
                     }
                 }
             }
@@ -30,43 +29,97 @@
     </script>
     <style>
         * { font-family: 'Tajawal', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #6366f1, #ec4899); border-radius: 3px; }
+        body { background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #fdf4ff 100%); min-height: 100vh; }
+        
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+        
+        .glass-card-dark { 
+            background: rgba(15, 23, 42, 0.9); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
         .gradient-brand { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .hover-lift { transition: all 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2); }
+        
+        .hover-lift { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hover-lift:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.25); }
+        
         .pulse-dot { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .slide-in { animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
+        
+        .slide-in { animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        
         .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
         .fade-in-up { animation: fadeInUp 0.6s ease-out; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .sidebar-item { transition: all 0.2s ease; border-right: 3px solid transparent; }
-        .sidebar-item:hover { background: rgba(99, 102, 241, 0.1); border-right-color: #6366f1; }
-        .sidebar-item.active { background: rgba(99, 102, 241, 0.15); border-right-color: #6366f1; }
-        .text-gradient { background: linear-gradient(135deg, #818cf8, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .glow { box-shadow: 0 0 60px rgba(99, 102, 241, 0.4); }
-        .hero-bg { background: radial-gradient(ellipse at top, rgba(99,102,241,0.15) 0%, transparent 60%); }
-        .gradient-text { background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .text-gradient { background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
         @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        .glow { box-shadow: 0 0 60px rgba(99, 102, 241, 0.4); }
+        .glow-pink { box-shadow: 0 0 60px rgba(236, 72, 153, 0.4); }
+        
+        .hero-bg { background: radial-gradient(ellipse at top, rgba(99,102,241,0.1) 0%, transparent 60%), radial-gradient(ellipse at bottom, rgba(236,72,153,0.08) 0%, transparent 60%); }
+        
         .spinner { border: 3px solid rgba(99, 102, 241, 0.2); border-top-color: #6366f1; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .toast { animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.7s forwards; }
-        @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+        
+        .toast { animation: toastIn 0.4s ease-out, toastOut 0.3s ease-in 2.7s forwards; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(100px); } }
+        
         .modal-overlay { animation: fadeIn 0.2s ease-out; }
-        .modal-content { animation: scaleIn 0.2s ease-out; }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-content { animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        .float { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        
+        .shimmer { position: relative; overflow: hidden; }
+        .shimmer::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        
+        .ripple { position: relative; overflow: hidden; }
+        .ripple::after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; background-image: radial-gradient(circle, #6366f1 10%, transparent 10%); background-repeat: no-repeat; background-position: 50%; transform: scale(10,10); opacity: 0; transition: transform .5s, opacity 1s; }
+        .ripple:active::after { transform: scale(0,0); opacity: .3; transition: 0s; }
+        
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        
+        .sidebar-item { transition: all 0.3s ease; border-right: 3px solid transparent; }
+        .sidebar-item:hover { background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent); border-right-color: #6366f1; }
+        .sidebar-item.active { background: linear-gradient(90deg, rgba(99, 102, 241, 0.15), transparent); border-right-color: #6366f1; }
+        
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
+        
+        .input-focus { transition: all 0.3s ease; }
+        .input-focus:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        
+        .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%); }
+        
+        .animate-bounce-slow { animation: bounce 2s infinite; }
+        
+        .tilt { transform: perspective(1000px) rotateX(0deg) rotateY(0deg); transition: transform 0.3s ease; }
+        .tilt:hover { transform: perspective(1000px) rotateX(2deg) rotateY(-2deg); }
     </style>
 </head>
-<body class="bg-dark-950 text-white font-tajawal">
+<body class="text-slate-800 font-tajawal">
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect, useRef, createContext, useContext, useCallback } = React;
+        const { useState, useEffect, useRef, createContext, useContext } = React;
 
         // ==================== FIREBASE CONFIG ====================
         const firebaseConfig = {
@@ -75,25 +128,21 @@
             projectId: "socialmedia-byvexonet",
             storageBucket: "socialmedia-byvexonet.firebasestorage.app",
             messagingSenderId: "811962367877",
-            appId: "1:811962367877:web:380f89a7559485a3ca8eec",
-            measurementId: "G-WN4FZ1HHM7"
+            appId: "1:811962367877:web:380f89a7559485a3ca8eec"
         };
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
-        const analytics = firebase.analytics();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
 
         // ==================== CONTEXTS ====================
         const AuthContext = createContext();
         const ToastContext = createContext();
-        const ThemeContext = createContext();
 
         function useAuth() { return useContext(AuthContext); }
         function useToast() { return useContext(ToastContext); }
-        function useTheme() { return useContext(ThemeContext); }
 
         // ==================== TOAST PROVIDER ====================
         function ToastProvider({ children }) {
@@ -106,23 +155,16 @@
             return (
                 <ToastContext.Provider value={{ addToast }}>
                     {children}
-                    <div className="fixed top-4 left-4 z-[100] space-y-2">
+                    <div className="fixed top-4 left-4 z-[100] space-y-3">
                         {toasts.map(toast => (
-                            <div key={toast.id} className={`toast px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 ${toast.type === 'success' ? 'bg-emerald-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-brand-500'}`}>
-                                <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✕' : 'ℹ'}</span>
-                                <span className="text-white text-sm font-medium">{toast.message}</span>
+                            <div key={toast.id} className={`toast px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl ${toast.type === 'success' ? 'bg-emerald-500/90 text-white' : toast.type === 'error' ? 'bg-red-500/90 text-white' : 'bg-brand-500/90 text-white'}`}>
+                                <span className="text-xl">{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✕' : 'ℹ'}</span>
+                                <span className="text-sm font-medium">{toast.message}</span>
                             </div>
                         ))}
                     </div>
                 </ToastContext.Provider>
             );
-        }
-
-        // ==================== THEME PROVIDER ====================
-        function ThemeProvider({ children }) {
-            const [darkMode, setDarkMode] = useState(true);
-            useEffect(() => { document.documentElement.classList.toggle('dark', darkMode); }, [darkMode]);
-            return <ThemeContext.Provider value={{ darkMode, setDarkMode }}>{children}</ThemeContext.Provider>;
         }
 
         // ==================== AUTH PROVIDER ====================
@@ -169,7 +211,7 @@
             return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
         }
 
-        // ==================== HELPER COMPONENTS ====================
+        // ==================== HELPERS ====================
         function LoadingSpinner() {
             return <div className="flex items-center justify-center py-20"><div className="spinner"></div></div>;
         }
@@ -177,99 +219,85 @@
         function Modal({ isOpen, onClose, title, children }) {
             if (!isOpen) return null;
             return (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 modal-overlay" onClick={onClose}>
-                    <div className="glass-card rounded-2xl w-full max-w-md mx-4 modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between p-5 border-b border-dark-700">
-                            <h3 className="text-lg font-bold text-white">{title}</h3>
-                            <button onClick={onClose} className="w-8 h-8 rounded-full bg-dark-700 hover:bg-dark-600 flex items-center justify-center text-dark-300 transition-colors">✕</button>
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 modal-overlay" onClick={onClose}>
+                    <div className="glass-card rounded-3xl w-full max-w-md mx-4 modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+                            <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">✕</button>
                         </div>
-                        <div className="p-5">{children}</div>
+                        <div className="p-6">{children}</div>
                     </div>
                 </div>
-            );
-        }
-
-        function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }) {
-            return (
-                <Modal isOpen={isOpen} onClose={onClose} title={title}>
-                    <p className="text-dark-300 mb-6">{message}</p>
-                    <div className="flex gap-3">
-                        <button onClick={onClose} className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white transition-colors">إلغاء</button>
-                        <button onClick={onConfirm} className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl text-white transition-colors">تأكيد الحذف</button>
-                    </div>
-                </Modal>
             );
         }
 
         // ==================== LANDING PAGE ====================
         function Navbar({ onNavigate }) {
             const [scrolled, setScrolled] = useState(false);
-            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
             useEffect(() => {
                 const handleScroll = () => setScrolled(window.scrollY > 50);
                 window.addEventListener('scroll', handleScroll);
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
             return (
-                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-dark-950/90 backdrop-blur-xl border-b border-dark-800' : ''}`}>
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-200/50' : ''}`}>
                     <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold text-lg">S</div>
-                            <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
+                            <div className="w-11 h-11 rounded-2xl gradient-brand flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">S</div>
+                            <span className="text-2xl font-black text-gradient">سوشيال فاست</span>
                         </div>
                         <div className="hidden md:flex items-center gap-8">
-                            <a href="#features" className="text-dark-300 hover:text-white transition-colors">الميزات</a>
-                            <a href="#pricing" className="text-dark-300 hover:text-white transition-colors">الأسعار</a>
-                            <a href="#testimonials" className="text-dark-300 hover:text-white transition-colors">الآراء</a>
+                            <a href="#features" className="text-slate-600 hover:text-brand-600 transition-colors font-medium">الميزات</a>
+                            <a href="#pricing" className="text-slate-600 hover:text-brand-600 transition-colors font-medium">الأسعار</a>
+                            <a href="#testimonials" className="text-slate-600 hover:text-brand-600 transition-colors font-medium">الآراء</a>
                         </div>
                         <div className="hidden md:flex items-center gap-3">
-                            <button onClick={() => onNavigate('login')} className="px-4 py-2 text-dark-300 hover:text-white transition-colors">تسجيل الدخول</button>
-                            <button onClick={() => onNavigate('register')} className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">ابدأ مجانًا</button>
+                            <button onClick={() => onNavigate('login')} className="px-5 py-2.5 text-slate-600 hover:text-brand-600 transition-colors font-medium">تسجيل الدخول</button>
+                            <button onClick={() => onNavigate('register')} className="btn-primary px-6 py-2.5 rounded-xl text-white font-bold ripple">ابدأ مجانًا</button>
                         </div>
-                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-dark-300">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
-                        </button>
                     </div>
-                    {mobileMenuOpen && (
-                        <div className="md:hidden bg-dark-900 border-t border-dark-700 p-4 space-y-3">
-                            <button onClick={() => { onNavigate('login'); setMobileMenuOpen(false); }} className="block w-full text-right py-2 text-dark-300">تسجيل الدخول</button>
-                            <button onClick={() => { onNavigate('register'); setMobileMenuOpen(false); }} className="block w-full py-3 bg-brand-500 rounded-xl text-white font-medium text-center">ابدأ مجانًا</button>
-                        </div>
-                    )}
                 </nav>
             );
         }
 
         function HeroSection({ onNavigate }) {
+            const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+            useEffect(() => {
+                const handleMouseMove = (e) => setMousePos({ x: e.clientX / 50, y: e.clientY / 50 });
+                window.addEventListener('mousemove', handleMouseMove);
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, []);
             return (
-                <section className="min-h-screen flex items-center justify-center relative hero-bg overflow-hidden">
-                    <div className="absolute inset-0 overflow-hidden">
-                        <div className="absolute top-20 right-20 w-72 h-72 bg-brand-500/20 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-20 left-20 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+                <section className="min-h-screen flex items-center justify-center relative hero-bg overflow-hidden pt-20">
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-20 right-20 w-96 h-96 bg-brand-400/20 rounded-full blur-3xl" style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}></div>
+                        <div className="absolute bottom-20 left-20 w-96 h-96 bg-pink-400/15 rounded-full blur-3xl" style={{ transform: `translate(${-mousePos.x}px, ${-mousePos.y}px)` }}></div>
+                        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-400/10 rounded-full blur-3xl" style={{ transform: `translate(${-mousePos.x * 2}px, ${mousePos.y * 2}px)` }}></div>
                     </div>
-                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-32 text-center relative z-10">
-                        <div className="inline-block px-4 py-2 bg-brand-500/10 border border-brand-500/20 rounded-full text-brand-400 text-sm mb-6 fade-in-up">
-                            🚀 المنصة الأولى لإدارة السوشيال ميديا
+                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-20 text-center relative z-10">
+                        <div className="inline-block px-6 py-3 bg-brand-50 border border-brand-200 rounded-full text-brand-600 text-sm font-bold mb-8 fade-in-up animate-bounce-slow">
+                            🚀 المنصة العربية الأولى لإدارة السوشيال ميديا
                         </div>
-                        <h1 className="text-4xl md:text-7xl font-black text-white mb-6 leading-tight fade-in-up" style={{ animationDelay: '0.1s' }}>
+                        <h1 className="text-5xl md:text-8xl font-black text-slate-800 mb-8 leading-tight fade-in-up" style={{ animationDelay: '0.1s' }}>
                             أدر سوشيال ميديا<br />
-                            <span className="gradient-text">بذكاء واحترافية</span>
+                            <span className="text-gradient">بذكاء واحترافية</span>
                         </h1>
-                        <p className="text-lg md:text-xl text-dark-300 max-w-2xl mx-auto mb-10 fade-in-up" style={{ animationDelay: '0.2s' }}>
-                            منصة متكاملة لإدارة حساباتك على جميع المنصات. اكتب محتوى أفضل، جدول منشوراتك، وحلل أداءك - كلها في مكان واحد.
+                        <p className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto mb-12 fade-in-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
+                            منصة متكاملة لإدارة حساباتك على جميع المنصات. اكتب محتوى أفضل، جدول منشوراتك، وحلل أداءك - كلها في مكان واحد
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up" style={{ animationDelay: '0.3s' }}>
-                            <button onClick={() => onNavigate('register')} className="px-8 py-4 bg-brand-500 hover:bg-brand-600 rounded-2xl text-white font-bold text-lg transition-all hover:scale-105 glow">
+                            <button onClick={() => onNavigate('register')} className="px-10 py-5 btn-primary rounded-2xl text-white font-black text-lg ripple glow">
                                 ابدأ مجانًا الآن
                             </button>
-                            <button className="px-8 py-4 bg-dark-800 hover:bg-dark-700 rounded-2xl text-white font-medium text-lg transition-all flex items-center gap-2">
-                                <span>▶️</span> شاهد الفيديو
+                            <button className="px-10 py-5 bg-white border-2 border-slate-200 hover:border-brand-300 rounded-2xl text-slate-700 font-bold text-lg transition-all hover:shadow-xl flex items-center gap-3">
+                                <span className="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center">▶️</span>
+                                شاهد الفيديو التعريفي
                             </button>
                         </div>
-                        <div className="mt-16 flex flex-wrap items-center justify-center gap-4 md:gap-8 text-dark-400 text-sm fade-in-up" style={{ animationDelay: '0.4s' }}>
-                            <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> بدون بطاقة ائتمان</div>
-                            <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> إعداد في 2 دقيقة</div>
-                            <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> إلغاء في أي وقت</div>
+                        <div className="mt-16 flex flex-wrap items-center justify-center gap-6 text-slate-500 text-sm fade-in-up" style={{ animationDelay: '0.4s' }}>
+                            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">✓</span> بدون بطاقة ائتمان</div>
+                            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">✓</span> إعداد في 2 دقيقة</div>
+                            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">✓</span> إلغاء في أي وقت</div>
                         </div>
                     </div>
                 </section>
@@ -278,29 +306,30 @@
 
         function FeaturesSection() {
             const features = [
-                { icon: '📊', title: 'لوحة تحكم ذكية', description: 'نظرة شاملة على أداء حساباتك مع رسوم بيانية تفاعلية.' },
-                { icon: '📅', title: 'تقويم المحتوى', description: 'جدول منشوراتك مسبقًا مع سحب وإفلات.' },
-                { icon: '✍️', title: 'كاتب الكابشنات AI', description: 'ولّد كابشنات احترافية بالذكاء الاصطناعي.' },
-                { icon: '🎨', title: 'مكتبة القوالب', description: 'أكثر من 100 قالب جاهز للتعديل.' },
-                { icon: '#️⃣', title: 'بحث الهاشتاجات', description: 'ابحث عن أفضل الهاشتاجات الرائجة.' },
-                { icon: '📈', title: 'تحليل الأداء', description: 'تقارير مفصلة لأفضل أوقات النشر.' },
-                { icon: '💬', title: 'إدارة الرسائل', description: 'ردود جاهزة على الاستفسارات الشائعة.' },
-                { icon: '🔄', title: 'إعادة استخدام المحتوى', description: 'حوّل منشور واحد إلى عدة صيغ مختلفة.' },
-                { icon: '💰', title: 'حاسبة العائد', description: 'احسب عائد استثمارك في كل حملة.' },
+                { icon: '📊', title: 'لوحة تحكم ذكية', description: 'نظرة شاملة على أداء حساباتك مع رسوم بيانية تفاعلية وإحصائيات مفصلة.', color: 'from-blue-500 to-cyan-500' },
+                { icon: '📅', title: 'تقويم المحتوى', description: 'جدول منشوراتك مسبقًا مع سحب وإفلات وتنبيهات ذكية.', color: 'from-purple-500 to-pink-500' },
+                { icon: '🤖', title: 'مولّد المحتوى AI', description: 'ولّد محتوى احترافي بالذكاء الاصطناعي لكل المنصات.', color: 'from-brand-500 to-accent-500' },
+                { icon: '🎨', title: 'مكتبة القوالب', description: 'أكثر من 100 قالب جاهز للتعديل يناسب جميع أنواع المحتوى.', color: 'from-pink-500 to-rose-500' },
+                { icon: '#️⃣', title: 'بحث الهاشتاجات', description: 'ابحث عن أفضل الهاشتاجات الرائجة وتابع أداءها.', color: 'from-amber-500 to-orange-500' },
+                { icon: '📈', title: 'تحليل الأداء', description: 'تقارير مفصلة لأفضل أوقات النشر والمحتوى الأعلى تفاعلًا.', color: 'from-emerald-500 to-teal-500' },
+                { icon: '💬', title: 'إدارة الرسائل', description: 'ردود جاهزة على الاستفسارات الشائعة مع ردود ذكية.', color: 'from-indigo-500 to-blue-500' },
+                { icon: '👥', title: 'فريق العمل', description: 'تعاون مع فريقك على إدارة المحتوى والمنشورات.', color: 'from-violet-500 to-purple-500' },
+                { icon: '💰', title: 'حاسبة العائد', description: 'احسب عائد استثمارك في كل حملة تسويقية.', color: 'from-rose-500 to-red-500' },
             ];
             return (
-                <section id="features" className="py-20 md:py-32 relative">
+                <section id="features" className="py-24 md:py-32 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
-                        <div className="text-center mb-16">
-                            <span className="text-brand-400 font-medium">الميزات</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mt-3">كل ما تحتاجه في مكان واحد</h2>
+                        <div className="text-center mb-20">
+                            <span className="inline-block px-4 py-2 bg-brand-50 text-brand-600 rounded-full text-sm font-bold mb-4">الميزات</span>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-800 mt-3">كل ما تحتاجه في مكان واحد</h2>
+                            <p className="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">أدوات متقدمة مصممة خصيصًا لمساعدتك على إدارة حساباتك بكفاءة عالية</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {features.map((f, i) => (
-                                <div key={i} className="glass-card rounded-2xl p-6 hover-lift fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
-                                    <div className="w-14 h-14 rounded-2xl bg-brand-500/10 flex items-center justify-center text-3xl mb-4">{f.icon}</div>
-                                    <h3 className="text-xl font-bold text-white mb-2">{f.title}</h3>
-                                    <p className="text-dark-300 text-sm leading-relaxed">{f.description}</p>
+                                <div key={i} className="glass-card rounded-3xl p-8 card-hover tilt fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center text-3xl mb-6 shadow-lg`}>{f.icon}</div>
+                                    <h3 className="text-xl font-bold text-slate-800 mb-3">{f.title}</h3>
+                                    <p className="text-slate-500 leading-relaxed">{f.description}</p>
                                 </div>
                             ))}
                         </div>
@@ -311,25 +340,30 @@
 
         function PricingSection({ onNavigate }) {
             const plans = [
-                { name: 'مجاني', price: '0', features: ['3 منشورات شهريًا', 'قالب واحد', 'كاتب كابشنات básico', 'دعم عبر البريد'], popular: false },
-                { name: 'برو', price: '49', features: ['منشورات غير محدودة', 'جميع القوالب', 'كاتب كابشنات AI', 'تحليل الأداء', 'دعم مباشر'], popular: true },
-                { name: 'Enterprise', price: '149', features: ['كل ميزات برو', 'فريق عمل (5 أعضاء)', 'API доступ', 'تقارير مخصصة', 'مدير حساب مخصص'], popular: false },
+                { name: 'مجاني', price: '0', period: 'دائمًا', features: ['3 منشورات شهريًا', 'قالب واحد', 'كاتب كابشنات básico', 'دعم عبر البريد'], popular: false, color: 'from-slate-500 to-slate-600' },
+                { name: 'برو', price: '199', originalPrice: '399', period: 'شهريًا', features: ['منشورات غير محدودة', 'جميع القوالب', 'مولّد محتوى AI', 'تحليل الأداء', 'دعم مباشر 24/7', 'إدارة الرسائل'], popular: true, color: 'from-brand-500 to-accent-500' },
+                { name: 'Enterprise', price: '599', originalPrice: '999', period: 'شهريًا', features: ['كل ميزات برو', 'فريق عمل (10 أعضاء)', 'API доступ', 'تقارير مخصصة', 'مدير حساب مخصص', 'SLA 99.9%'], popular: false, color: 'from-emerald-500 to-teal-500' },
             ];
             return (
-                <section id="pricing" className="py-20 md:py-32 relative">
+                <section id="pricing" className="py-24 md:py-32 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
-                        <div className="text-center mb-16">
-                            <span className="text-brand-400 font-medium">الأسعار</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mt-3">خطط تناسب الجميع</h2>
+                        <div className="text-center mb-20">
+                            <span className="inline-block px-4 py-2 bg-brand-50 text-brand-600 rounded-full text-sm font-bold mb-4">الأسعار</span>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-800 mt-3">خطط تناسب الجميع</h2>
+                            <p className="text-slate-500 mt-4 text-lg">ابدأ مجانًا وترقّي حسب احتياجك - بالجنيه المصري</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                             {plans.map((plan, i) => (
-                                <div key={i} className={`rounded-2xl p-6 md:p-8 transition-all hover-lift ${plan.popular ? 'bg-gradient-to-b from-brand-500/20 to-brand-600/10 border-2 border-brand-500 relative' : 'glass-card'}`}>
-                                    {plan.popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand-500 rounded-full text-white text-sm font-medium">الأكثر شعبية</div>}
-                                    <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                                    <div className="flex items-baseline gap-1 mb-6"><span className="text-4xl font-black text-white">${plan.price}</span><span className="text-dark-400">/شهريًا</span></div>
-                                    <ul className="space-y-3 mb-8">{plan.features.map((f, j) => <li key={j} className="flex items-center gap-2 text-dark-300 text-sm"><span className="text-emerald-400">✓</span>{f}</li>)}</ul>
-                                    <button onClick={() => onNavigate('register')} className={`w-full py-3 rounded-xl font-medium transition-all ${plan.popular ? 'bg-brand-500 hover:bg-brand-600 text-white' : 'bg-dark-700 hover:bg-dark-600 text-white'}`}>ابدأ الآن</button>
+                                <div key={i} className={`rounded-3xl p-8 transition-all card-hover ${plan.popular ? 'bg-gradient-to-b from-brand-500 to-accent-500 text-white relative scale-105 shadow-2xl shadow-brand-500/30' : 'glass-card'}`}>
+                                    {plan.popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-white rounded-full text-brand-600 text-sm font-bold shadow-lg">⭐ الأكثر شعبية</div>}
+                                    <h3 className={`text-2xl font-bold mb-2 ${plan.popular ? 'text-white' : 'text-slate-800'}`}>{plan.name}</h3>
+                                    <div className="flex items-baseline gap-2 mb-8">
+                                        <span className={`text-5xl font-black ${plan.popular ? 'text-white' : 'text-slate-800'}`}>{plan.price}</span>
+                                        <span className={`text-lg ${plan.popular ? 'text-white/70' : 'text-slate-400'}`}>جنيه / {plan.period}</span>
+                                    </div>
+                                    {plan.originalPrice && <p className={`text-sm mb-4 line-through ${plan.popular ? 'text-white/50' : 'text-slate-400'}`}>{plan.originalPrice} جنيه</p>}
+                                    <ul className="space-y-4 mb-8">{plan.features.map((f, j) => <li key={j} className={`flex items-center gap-3 text-sm ${plan.popular ? 'text-white/90' : 'text-slate-600'}`}><span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${plan.popular ? 'bg-white/20' : 'bg-emerald-100 text-emerald-600'}`}>✓</span>{f}</li>)}</ul>
+                                    <button onClick={() => onNavigate('register')} className={`w-full py-4 rounded-xl font-bold transition-all ${plan.popular ? 'bg-white text-brand-600 hover:bg-slate-50' : 'bg-slate-800 text-white hover:bg-slate-700'}`}>{plan.popular ? 'ابدأ الآن' : 'ابدأ مجانًا'}</button>
                                 </div>
                             ))}
                         </div>
@@ -340,20 +374,26 @@
 
         function TestimonialsSection() {
             const testimonials = [
-                { name: 'سارة أحمد', role: 'صاحبة متجر', text: 'سوشيال فاست غيّر طريقة عملي بالكامل! تفاعل متابعيني زاد 300%.', rating: 5 },
-                { name: 'خالد محمد', role: 'مدير تسويق', text: 'أفضل أداة لإدارة حسابات العملاء. tiếtّف الوقت و improves النتائج.', rating: 5 },
-                { name: 'نورة سعيد', role: 'مؤثرة', text: 'كاتب الكابشنات وسّلني hours من الكتابة. أنصح فيه الجميع.', rating: 5 },
+                { name: 'سارة أحمد', role: 'صاحبة متجر إلكتروني', avatar: 'س', text: 'سوشيال فاست غيّر طريقة عملي بالكامل! أصبحت أنشئ محتوى بانتظام وتفاعل متابعيني زاد 300% في شهر واحد.', rating: 5 },
+                { name: 'خالد محمد', role: 'مدير تسويق', avatar: 'خ', text: 'أفضل أداة لإدارة حسابات العملاء. وفّرت لي ساعات من العمل اليومي وحسّنت النتائج بشكل ملحوظ.', rating: 5 },
+                { name: 'نورة سعيد', role: 'مؤثرة ومدونة', avatar: 'ن', text: 'مولّد المحتوى بالذكاء الاصطناعي وسّلني ساعات من الكتابة. أنصح فيه كل صاحب متجر أو مؤثر.', rating: 5 },
             ];
             return (
-                <section id="testimonials" className="py-20 md:py-32 relative">
+                <section id="testimonials" className="py-24 md:py-32 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
-                        <div className="text-center mb-16"><span className="text-brand-400 font-medium">الآراء</span><h2 className="text-3xl md:text-5xl font-black text-white mt-3">ماذا يقول عملاؤنا</h2></div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="text-center mb-20">
+                            <span className="inline-block px-4 py-2 bg-brand-50 text-brand-600 rounded-full text-sm font-bold mb-4">الآراء</span>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-800 mt-3">ماذا يقول عملاؤنا</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {testimonials.map((t, i) => (
-                                <div key={i} className="glass-card rounded-2xl p-6 hover-lift fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
-                                    <div className="flex gap-1 mb-4">{Array(5).fill(0).map((_, j) => <span key={j} className="text-amber-400">⭐</span>)}</div>
-                                    <p className="text-dark-200 text-sm leading-relaxed mb-6">"{t.text}"</p>
-                                    <div className="flex items-center gap-3"><div className="w-12 h-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">{t.name.charAt(0)}</div><div><p className="text-white font-bold">{t.name}</p><p className="text-dark-400 text-sm">{t.role}</p></div></div>
+                                <div key={i} className="glass-card rounded-3xl p-8 card-hover fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
+                                    <div className="flex gap-1 mb-6">{Array(5).fill(0).map((_, j) => <span key={j} className="text-amber-400 text-xl">⭐</span>)}</div>
+                                    <p className="text-slate-600 leading-relaxed mb-8 text-lg">"{t.text}"</p>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-2xl gradient-brand flex items-center justify-center text-white font-bold text-xl shadow-lg">{t.avatar}</div>
+                                        <div><p className="text-slate-800 font-bold text-lg">{t.name}</p><p className="text-slate-500">{t.role}</p></div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -364,14 +404,16 @@
 
         function CTASection({ onNavigate }) {
             return (
-                <section className="py-20 md:py-32 relative">
+                <section className="py-24 relative">
                     <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
-                        <div className="glass-card rounded-3xl p-8 md:p-12 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 to-pink-500/10"></div>
+                        <div className="glass-card rounded-[2rem] p-12 md:p-16 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 opacity-5"></div>
                             <div className="relative z-10">
-                                <h2 className="text-3xl md:text-4xl font-black text-white mb-4">جاهز لتطوير سوشيال ميديا؟</h2>
-                                <p className="text-dark-300 mb-8 max-w-xl mx-auto">انضم لآلاف المسوقين الذين يستخدمون سوشيال فاست</p>
-                                <button onClick={() => onNavigate('register')} className="px-10 py-4 bg-brand-500 hover:bg-brand-600 rounded-2xl text-white font-bold text-lg transition-all hover:scale-105 glow">ابدأ مجانًا الآن</button>
+                                <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6">جاهز لتطوير سوشيال ميديا؟</h2>
+                                <p className="text-slate-500 mb-10 max-w-xl mx-auto text-lg">انضم لآلاف المسوقين الذين يستخدمون سوشيال فاست لإدارة حساباتهم بكفاءة</p>
+                                <button onClick={() => onNavigate('register')} className="px-12 py-5 btn-primary rounded-2xl text-white font-black text-xl ripple glow">
+                                    ابدأ مجانًا الآن
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -381,18 +423,18 @@
 
         function Footer() {
             return (
-                <footer className="border-t border-dark-800 py-12">
+                <footer className="border-t border-slate-200 py-16 bg-white/50">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                             <div className="col-span-2 md:col-span-1">
-                                <div className="flex items-center gap-3 mb-4"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div><span className="text-lg font-bold text-gradient">سوشيال فاست</span></div>
-                                <p className="text-dark-400 text-sm">المنصة الأولى لإدارة السوشيال ميديا</p>
+                                <div className="flex items-center gap-3 mb-4"><div className="w-11 h-11 rounded-2xl gradient-brand flex items-center justify-center text-white font-bold shadow-lg">S</div><span className="text-xl font-black text-gradient">سوشيال فاست</span></div>
+                                <p className="text-slate-500">المنصة العربية الأولى لإدارة السوشيال ميديا</p>
                             </div>
-                            <div><h4 className="text-white font-bold mb-4">المنتج</h4><ul className="space-y-2 text-dark-400 text-sm"><li>الميزات</li><li>الأسعار</li><li>API</li></ul></div>
-                            <div><h4 className="text-white font-bold mb-4">الشركة</h4><ul className="space-y-2 text-dark-400 text-sm"><li>من نحن</li><li>المدونة</li><li>تواصل معنا</li></ul></div>
-                            <div><h4 className="text-white font-bold mb-4">الدعم</h4><ul className="space-y-2 text-dark-400 text-sm"><li>مركز المساعدة</li><li>الشروط</li><li>الخصوصية</li></ul></div>
+                            <div><h4 className="text-slate-800 font-bold mb-4">المنتج</h4><ul className="space-y-3 text-slate-500"><li className="hover:text-brand-600 cursor-pointer transition-colors">الميزات</li><li className="hover:text-brand-600 cursor-pointer transition-colors">الأسعار</li><li className="hover:text-brand-600 cursor-pointer transition-colors">API</li></ul></div>
+                            <div><h4 className="text-slate-800 font-bold mb-4">الشركة</h4><ul className="space-y-3 text-slate-500"><li className="hover:text-brand-600 cursor-pointer transition-colors">من نحن</li><li className="hover:text-brand-600 cursor-pointer transition-colors">المدونة</li><li className="hover:text-brand-600 cursor-pointer transition-colors">تواصل معنا</li></ul></div>
+                            <div><h4 className="text-slate-800 font-bold mb-4">الدعم</h4><ul className="space-y-3 text-slate-500"><li className="hover:text-brand-600 cursor-pointer transition-colors">مركز المساعدة</li><li className="hover:text-brand-600 cursor-pointer transition-colors">الشروط</li><li className="hover:text-brand-600 cursor-pointer transition-colors">الخصوصية</li></ul></div>
                         </div>
-                        <div className="border-t border-dark-800 mt-12 pt-8 text-center text-dark-400 text-sm">© 2026 سوشيال فاست. جميع الحقوق محفوظة.</div>
+                        <div className="border-t border-slate-200 mt-12 pt-8 text-center text-slate-500">© 2026 سوشيال فاست. جميع الحقوق محفوظة.</div>
                     </div>
                 </footer>
             );
@@ -400,7 +442,7 @@
 
         function LandingPage({ onNavigate }) {
             return (
-                <div className="min-h-screen bg-dark-950">
+                <div className="min-h-screen">
                     <Navbar onNavigate={onNavigate} />
                     <HeroSection onNavigate={onNavigate} />
                     <FeaturesSection />
@@ -442,45 +484,46 @@
             };
 
             return (
-                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
-                    <div className="w-full max-w-md relative z-10">
+                <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-400/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-pink-400/10 rounded-full blur-3xl"></div>
+                    <div className="w-full max-w-md relative z-10 fade-in-up">
                         <div className="text-center mb-8">
                             <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div>
-                                <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
+                                <div className="w-12 h-12 rounded-2xl gradient-brand flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">S</div>
+                                <span className="text-2xl font-black text-gradient">سوشيال فاست</span>
                             </button>
-                            <h1 className="text-3xl font-black text-white">مرحبًا بعودتك!</h1>
-                            <p className="text-dark-400 mt-2">سجّل دخولك لإدارة حساباتك</p>
+                            <h1 className="text-4xl font-black text-slate-800">مرحبًا بعودتك!</h1>
+                            <p className="text-slate-500 mt-3">سجّل دخولك لإدارة حساباتك</p>
                         </div>
-                        <div className="glass-card rounded-2xl p-6 md:p-8">
+                        <div className="glass-card rounded-3xl p-8">
                             {showReset ? (
                                 <div>
-                                    <button onClick={() => setShowReset(false)} className="text-brand-400 text-sm mb-4">→ العودة</button>
-                                    <h2 className="text-xl font-bold text-white mb-4">إعادة تعيين كلمة المرور</h2>
+                                    <button onClick={() => setShowReset(false)} className="text-brand-600 font-medium mb-4 flex items-center gap-2">→ العودة لتسجيل الدخول</button>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-6">إعادة تعيين كلمة المرور</h2>
                                     <form onSubmit={handleReset}>
-                                        <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 mb-4" placeholder="بريدك الإلكتروني" required />
-                                        <button type="submit" className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">إرسال الرابط</button>
+                                        <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus mb-4" placeholder="بريدك الإلكتروني" required />
+                                        <button type="submit" className="w-full py-4 btn-primary rounded-xl text-white font-bold ripple">إرسال الرابط</button>
                                     </form>
                                 </div>
                             ) : (
                                 <div>
-                                    {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">{error}</div>}
-                                    <button onClick={handleGoogle} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
-                                        <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                    {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">{error}</div>}
+                                    <button onClick={handleGoogle} className="w-full py-4 bg-white border-2 border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 font-bold transition-all flex items-center justify-center gap-3 mb-6 hover:shadow-lg">
+                                        <svg className="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                         الدخول بـ Google
                                     </button>
-                                    <div className="flex items-center gap-4 my-6"><div className="flex-1 h-px bg-dark-700"></div><span className="text-dark-400 text-sm">أو</span><div className="flex-1 h-px bg-dark-700"></div></div>
-                                    <form onSubmit={handleLogin} className="space-y-4">
-                                        <div><label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="example@email.com" required /></div>
-                                        <div><label className="block text-dark-300 text-sm mb-2">كلمة المرور</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="••••••••" required /></div>
-                                        <div className="flex items-center justify-between"><label className="flex items-center gap-2 text-dark-300 text-sm"><input type="checkbox" className="rounded border-dark-600 bg-dark-800" />تذكرني</label><button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-brand-400 text-sm hover:underline">نسيت كلمة المرور؟</button></div>
-                                        <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors">{loading ? <div className="spinner mx-auto" style={{width:'20px',height:'20px',borderWidth:'2px'}}></div> : 'تسجيل الدخول'}</button>
+                                    <div className="flex items-center gap-4 my-6"><div className="flex-1 h-px bg-slate-200"></div><span className="text-slate-400 text-sm font-medium">أو</span><div className="flex-1 h-px bg-slate-200"></div></div>
+                                    <form onSubmit={handleLogin} className="space-y-5">
+                                        <div><label className="block text-slate-600 text-sm font-medium mb-2">البريد الإلكتروني</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" placeholder="example@email.com" required /></div>
+                                        <div><label className="block text-slate-600 text-sm font-medium mb-2">كلمة المرور</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" placeholder="••••••••" required /></div>
+                                        <div className="flex items-center justify-between"><label className="flex items-center gap-2 text-slate-600 text-sm"><input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />تذكرني</label><button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-brand-600 text-sm font-medium hover:underline">نسيت كلمة المرور؟</button></div>
+                                        <button type="submit" disabled={loading} className="w-full py-4 btn-primary disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed rounded-xl text-white font-bold ripple transition-all">{loading ? <div className="spinner mx-auto" style={{width:'24px',height:'24px',borderWidth:'3px'}}></div> : 'تسجيل الدخول'}</button>
                                     </form>
                                 </div>
                             )}
                         </div>
-                        <p className="text-center text-dark-400 mt-6">ليس لديك حساب؟ <button onClick={() => onNavigate('register')} className="text-brand-400 hover:underline font-medium">سجّل الآن</button></p>
+                        <p className="text-center text-slate-500 mt-6">ليس لديك حساب؟ <button onClick={() => onNavigate('register')} className="text-brand-600 font-bold hover:underline">سجّل الآن مجانًا</button></p>
                     </div>
                 </div>
             );
@@ -512,42 +555,42 @@
             };
 
             return (
-                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative overflow-hidden">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl"></div>
-                    <div className="w-full max-w-md relative z-10">
+                <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+                    <div className="absolute top-20 left-20 w-[400px] h-[400px] bg-brand-400/10 rounded-full blur-3xl"></div>
+                    <div className="w-full max-w-md relative z-10 fade-in-up">
                         <div className="text-center mb-8">
-                            <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div><span className="text-xl font-bold text-gradient">سوشيال فاست</span></button>
-                            <h1 className="text-3xl font-black text-white">أنشئ حسابك مجانًا</h1>
+                            <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6"><div className="w-12 h-12 rounded-2xl gradient-brand flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">S</div><span className="text-2xl font-black text-gradient">سوشيال فاست</span></button>
+                            <h1 className="text-4xl font-black text-slate-800">أنشئ حسابك مجانًا</h1>
+                            <p className="text-slate-500 mt-3">ابدأ إدارة سوشيال ميديا في دقائق</p>
                         </div>
-                        <div className="glass-card rounded-2xl p-6 md:p-8">
-                            {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">{error}</div>}
-                            <button onClick={handleGoogle} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
-                                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        <div className="glass-card rounded-3xl p-8">
+                            {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">{error}</div>}
+                            <button onClick={handleGoogle} className="w-full py-4 bg-white border-2 border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 font-bold transition-all flex items-center justify-center gap-3 mb-6 hover:shadow-lg">
+                                <svg className="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                 التسجيل بـ Google
                             </button>
-                            <div className="flex items-center gap-4 my-6"><div className="flex-1 h-px bg-dark-700"></div><span className="text-dark-400 text-sm">أو</span><div className="flex-1 h-px bg-dark-700"></div></div>
-                            <form onSubmit={handleRegister} className="space-y-4">
-                                <div><label className="block text-dark-300 text-sm mb-2">الاسم</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
-                                <div><label className="block text-dark-300 text-sm mb-2">البريد</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
-                                <div><label className="block text-dark-300 text-sm mb-2">كلمة المرور</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
-                                <div><label className="block text-dark-300 text-sm mb-2">تأكيد كلمة المرور</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
-                                <label className="flex items-start gap-2 text-dark-300 text-sm"><input type="checkbox" className="mt-1 rounded border-dark-600 bg-dark-800" required /><span>أوافق على <a href="#" className="text-brand-400">الشروط</a></span></label>
-                                <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 rounded-xl text-white font-medium transition-colors">{loading ? <div className="spinner mx-auto" style={{width:'20px',height:'20px',borderWidth:'2px'}}></div> : 'إنشاء حساب'}</button>
+                            <div className="flex items-center gap-4 my-6"><div className="flex-1 h-px bg-slate-200"></div><span className="text-slate-400 text-sm font-medium">أو</span><div className="flex-1 h-px bg-slate-200"></div></div>
+                            <form onSubmit={handleRegister} className="space-y-5">
+                                <div><label className="block text-slate-600 text-sm font-medium mb-2">الاسم الكامل</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" required /></div>
+                                <div><label className="block text-slate-600 text-sm font-medium mb-2">البريد الإلكتروني</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" required /></div>
+                                <div><label className="block text-slate-600 text-sm font-medium mb-2">كلمة المرور</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" required /></div>
+                                <div><label className="block text-slate-600 text-sm font-medium mb-2">تأكيد كلمة المرور</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" required /></div>
+                                <label className="flex items-start gap-3 text-slate-600 text-sm"><input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" required /><span>أوافق على <a href="#" className="text-brand-600 font-medium hover:underline">الشروط والأحكام</a> و <a href="#" className="text-brand-600 font-medium hover:underline">سياسة الخصوصية</a></span></label>
+                                <button type="submit" disabled={loading} className="w-full py-4 btn-primary disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed rounded-xl text-white font-bold ripple transition-all">{loading ? <div className="spinner mx-auto" style={{width:'24px',height:'24px',borderWidth:'3px'}}></div> : 'إنشاء حساب مجاني'}</button>
                             </form>
                         </div>
-                        <p className="text-center text-dark-400 mt-6">لديك حساب؟ <button onClick={() => onNavigate('login')} className="text-brand-400 hover:underline">سجّل دخولك</button></p>
+                        <p className="text-center text-slate-500 mt-6">لديك حساب بالفعل؟ <button onClick={() => onNavigate('login')} className="text-brand-600 font-bold hover:underline">سجّل دخولك</button></p>
                     </div>
                 </div>
             );
         }
 
         // ==================== DASHBOARD ====================
-        function Sidebar({ activePage, setActivePage, isOpen, setIsOpen, onNavigate }) {
-            const { user } = useAuth();
+        function Sidebar({ activePage, setActivePage, isOpen, setIsOpen }) {
             const menuItems = [
                 { id: 'dashboard', name: 'لوحة التحكم', icon: '📊' },
                 { id: 'ai', name: 'مولّد المحتوى AI', icon: '🤖' },
-                { id: 'calendar', name: 'التقويم المتقدم', icon: '📅' },
+                { id: 'calendar', name: 'التقويم', icon: '📅' },
                 { id: 'templates', name: 'القوالب', icon: '🎨' },
                 { id: 'captions', name: 'الكابشنات', icon: '✍️' },
                 { id: 'hashtags', name: 'الهاشتاجات', icon: '#️⃣' },
@@ -558,25 +601,25 @@
                 { id: 'settings', name: 'الإعدادات', icon: '⚙️' },
             ];
             return (
-                <aside className={`fixed right-0 top-0 h-full bg-dark-900 border-l border-dark-700 transition-all duration-300 z-50 ${isOpen ? 'w-64' : 'w-20'} hidden md:flex flex-col`}>
-                    <div className="p-4 border-b border-dark-700"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold flex-shrink-0">S</div>{isOpen && <span className="text-lg font-bold text-gradient">سوشيال فاست</span>}</div></div>
-                    <nav className="flex-1 py-4 overflow-y-auto">{menuItems.map(item => <button key={item.id} onClick={() => setActivePage(item.id)} className={`sidebar-item w-full flex items-center gap-3 px-4 py-3 ${activePage === item.id ? 'active bg-brand-500/10 text-brand-400' : 'text-dark-300 hover:text-white'}`}><span className="text-xl flex-shrink-0">{item.icon}</span>{isOpen && <span className="text-sm font-medium">{item.name}</span>}</button>)}</nav>
-                    <button onClick={() => setIsOpen(!isOpen)} className="p-4 border-t border-dark-700 hover:bg-dark-800"><span className="text-xl">{isOpen ? '→' : '←'}</span></button>
+                <aside className={`fixed right-0 top-0 h-full bg-white border-l border-slate-200 transition-all duration-300 z-50 ${isOpen ? 'w-64' : 'w-20'} hidden md:flex flex-col shadow-xl shadow-slate-200/50`}>
+                    <div className="p-4 border-b border-slate-100"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg shadow-brand-500/30">S</div>{isOpen && <span className="text-lg font-black text-gradient">سوشيال فاست</span>}</div></div>
+                    <nav className="flex-1 py-4 overflow-y-auto">{menuItems.map(item => <button key={item.id} onClick={() => setActivePage(item.id)} className={`sidebar-item w-full flex items-center gap-3 px-4 py-3 ${activePage === item.id ? 'active bg-brand-50 text-brand-600' : 'text-slate-600 hover:text-slate-800'}`}><span className="text-xl flex-shrink-0">{item.icon}</span>{isOpen && <span className="text-sm font-medium">{item.name}</span>}</button>)}</nav>
+                    <button onClick={() => setIsOpen(!isOpen)} className="p-4 border-t border-slate-100 hover:bg-slate-50 transition-colors"><span className="text-xl">{isOpen ? '→' : '←'}</span></button>
                 </aside>
             );
         }
 
         function MobileNav({ activePage, setActivePage }) {
             const items = [
-                { id: 'dashboard', icon: '📊' },
-                { id: 'calendar', icon: '📅' },
-                { id: 'captions', icon: '✍️' },
-                { id: 'analytics', icon: '📈' },
-                { id: 'settings', icon: '⚙️' },
+                { id: 'dashboard', icon: '📊', name: 'الرئيسية' },
+                { id: 'ai', icon: '🤖', name: 'AI' },
+                { id: 'calendar', icon: '📅', name: 'التقويم' },
+                { id: 'captions', icon: '✍️', name: 'الكابشنات' },
+                { id: 'settings', icon: '⚙️', name: 'الإعدادات' },
             ];
             return (
-                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-700 z-50">
-                    <div className="flex items-center justify-around py-2">{items.map(item => <button key={item.id} onClick={() => setActivePage(item.id)} className={`p-3 rounded-xl ${activePage === item.id ? 'bg-brand-500/20 text-brand-400' : 'text-dark-400'}`}><span className="text-xl">{item.icon}</span></button>)}</div>
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 shadow-2xl shadow-slate-200/50">
+                    <div className="flex items-center justify-around py-2">{items.map(item => <button key={item.id} onClick={() => setActivePage(item.id)} className={`flex flex-col items-center gap-1 p-2 rounded-xl ${activePage === item.id ? 'text-brand-600' : 'text-slate-400'}`}><span className="text-xl">{item.icon}</span><span className="text-xs">{item.name}</span></button>)}</div>
                 </div>
             );
         }
@@ -584,16 +627,16 @@
         function Header({ activePage, onNavigate }) {
             const { user, logout } = useAuth();
             const { addToast } = useToast();
-            const pageNames = { dashboard:'لوحة التحكم', ai:'مولّد المحتوى AI', calendar:'التقويم المتقدم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', media:'الوسائط', team:'فريق العمل', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
+            const pageNames = { dashboard:'لوحة التحكم', ai:'مولّد المحتوى', calendar:'التقويم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', media:'الوسائط', team:'فريق العمل', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
             const handleLogout = async () => { await logout(); addToast('تم تسجيل الخروج'); onNavigate('landing'); };
             return (
-                <header className="h-16 bg-dark-900/80 backdrop-blur-xl border-b border-dark-700 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
-                    <h2 className="text-lg md:text-xl font-bold text-white">{pageNames[activePage]}</h2>
-                    <div className="flex items-center gap-3">
-                        <button className="relative p-2 hover:bg-dark-800 rounded-xl"><span className="text-xl">🔔</span><span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full pulse-dot"></span></button>
-                        <div className="hidden md:flex items-center gap-3"><div className="text-left"><p className="text-sm font-medium text-white">{user?.displayName || 'مستخدم'}</p><p className="text-xs text-dark-400">{user?.email}</p></div></div>
-                        <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-sm">{user?.displayName?.charAt(0) || 'م'}</div>
-                        <button onClick={handleLogout} className="hidden md:block px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-dark-300 text-sm">خروج</button>
+                <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+                    <h2 className="text-xl md:text-2xl font-bold text-slate-800">{pageNames[activePage]}</h2>
+                    <div className="flex items-center gap-4">
+                        <button className="relative p-3 hover:bg-slate-100 rounded-xl transition-colors"><span className="text-xl">🔔</span><span className="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full pulse-dot"></span></button>
+                        <div className="hidden md:flex items-center gap-3"><div className="text-left"><p className="text-sm font-bold text-slate-800">{user?.displayName || 'مستخدم'}</p><p className="text-xs text-slate-400">{user?.email}</p></div></div>
+                        <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold shadow-lg shadow-brand-500/30">{user?.displayName?.charAt(0) || 'م'}</div>
+                        <button onClick={handleLogout} className="hidden md:block px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 text-sm font-medium transition-colors">خروج</button>
                     </div>
                 </header>
             );
@@ -603,36 +646,78 @@
         function DashboardPage() {
             const { user } = useAuth();
             const [posts, setPosts] = useState([]);
-            const [loading, setLoading] = useState(true);
-
-            useEffect(() => {
-                const unsubscribe = db.collection('posts').where('userId', '==', user?.uid).orderBy('createdAt', 'desc').limit(5).onSnapshot(snapshot => {
-                    setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                    setLoading(false);
-                });
-                return unsubscribe;
-            }, [user]);
-
+            useEffect(() => { if (user) db.collection('posts').where('userId', '==', user.uid).orderBy('createdAt', 'desc').limit(5).onSnapshot(s => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() })))); }, [user]);
             const stats = [
-                { title: 'إجمالي المنشورات', value: posts.length, icon: '📝', color: 'from-brand-500 to-brand-600' },
-                { title: 'المنشورات المنشورة', value: posts.filter(p => p.status === 'published').length, icon: '✅', color: 'from-emerald-500 to-emerald-600' },
-                { title: 'مسودات', value: posts.filter(p => p.status === 'draft').length, icon: '📝', color: 'from-amber-500 to-amber-600' },
-                { title: 'مجدولة', value: posts.filter(p => p.status === 'scheduled').length, icon: '📅', color: 'from-pink-500 to-pink-600' },
+                { title: 'إجمالي المنشورات', value: posts.length, icon: '📝', color: 'from-brand-500 to-brand-600', change: '+12%' },
+                { title: 'المنشورات', value: posts.filter(p => p.status === 'published').length, icon: '✅', color: 'from-emerald-500 to-emerald-600', change: '+8%' },
+                { title: 'مسودات', value: posts.filter(p => p.status === 'draft').length, icon: '📝', color: 'from-amber-500 to-amber-600', change: '+5%' },
+                { title: 'مجدولة', value: posts.filter(p => p.status === 'scheduled').length, icon: '📅', color: 'from-pink-500 to-pink-600', change: '+3%' },
             ];
+            return (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="bg-gradient-to-r from-brand-500 to-accent-500 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
+                        <div className="relative z-10">
+                            <h2 className="text-2xl md:text-3xl font-black">مرحبًا {user?.displayName || 'بكم'}! 👋</h2>
+                            <p className="text-white/80 mt-2">إليك نظرة سريعة على حسابك اليوم</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{stats.map((s, i) => <div key={i} className="glass-card rounded-2xl p-5 card-hover fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}><div className="flex items-start justify-between"><div><p className="text-slate-500 text-sm mb-1">{s.title}</p><p className="text-2xl md:text-3xl font-black text-slate-800">{s.value}</p><span className="text-emerald-500 text-xs font-bold">{s.change}</span></div><div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-xl shadow-lg`}>{s.icon}</div></div></div>)}</div>
+                    <div className="glass-card rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">آخر المنشورات</h3>
+                        {posts.length === 0 ? <p className="text-slate-400 text-center py-8">لا توجد منشورات بعد</p> : <div className="space-y-3">{posts.map(p => <div key={p.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl card-hover"><div className="flex-1"><p className="text-slate-800 font-bold">{p.title}</p><p className="text-slate-400 text-sm">{p.platform}</p></div><span className={`px-3 py-1 rounded-full text-xs font-bold ${p.status === 'published' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-600'}`}>{p.status === 'published' ? 'منشور' : 'مسودة'}</span></div>)}</div>}
+                    </div>
+                </div>
+            );
+        }
+
+        function AIContentPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
+            const [prompt, setPrompt] = useState('');
+            const [platform, setPlatform] = useState('Instagram');
+            const [tone, setTone] = useState('احترافي');
+            const [results, setResults] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const generate = () => {
+                if (!prompt.trim()) return;
+                setLoading(true);
+                setTimeout(() => {
+                    setResults({
+                        caption: `📢 ${prompt}\n\nنقدم لكم أفضل المنتجات بجودة عالية وأسعار منافسة\n\n✅ ضمان على جميع المنتجات\n✅ شحن سريع وآمن\n✅ خدمة عملاء 24/7\n\n🛒 اطلب الآن من الرابط في البايو!`,
+                        hashtags: '#تسوق_اونلاين #عروض #جودة_عالية #شحن_سريع #ماركتنج',
+                        ideas: [`فيديو قصير عن ${prompt}`, 'بوست كاروسيل بـ 5 صور', 'ستوري تفاعلية مع استفتاء', 'ريلز مع موسيقى ترند'],
+                    });
+                    setLoading(false);
+                    addToast('تم توليد المحتوى!');
+                }, 2000);
+            };
+
+            const copy = (text) => { navigator.clipboard.writeText(text); addToast('تم النسخ!'); };
 
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="bg-gradient-to-r from-brand-500/20 to-pink-500/20 rounded-2xl p-6 border border-brand-500/20">
-                        <h2 className="text-xl md:text-2xl font-bold text-white">مرحبًا {user?.displayName || 'بكم'}! 👋</h2>
-                        <p className="text-dark-300 mt-1">إليك نظرة سريعة على حسابك اليوم</p>
+                    <div className="bg-gradient-to-r from-brand-500 to-accent-500 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
+                        <div className="relative z-10"><h2 className="text-2xl md:text-3xl font-black flex items-center gap-3">🤖 مولّد المحتوى بالذكاء الاصطناعي</h2><p className="text-white/80 mt-2">اكتب فكرتك ودع الذكاء الاصطناعي يصنع لك المحتوى</p></div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{stats.map((s, i) => <div key={i} className="glass-card rounded-2xl p-4 md:p-5 hover-lift"><div className="flex items-start justify-between"><div><p className="text-dark-400 text-xs md:text-sm mb-1">{s.title}</p><p className="text-xl md:text-2xl font-bold text-white">{s.value}</p></div><div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-xl md:text-2xl`}>{s.icon}</div></div></div>)}</div>
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">آخر المنشورات</h3>
-                        {loading ? <LoadingSpinner /> : posts.length === 0 ? <p className="text-dark-400 text-center py-8">لا توجد منشورات بعد. ابدأ بإنشاء أول منشور!</p> : (
-                            <div className="space-y-3">{posts.map(post => <div key={post.id} className="flex items-center gap-4 p-3 md:p-4 bg-dark-800/50 rounded-xl"><div className="flex-1"><p className="text-white font-medium text-sm md:text-base">{post.title}</p><p className="text-dark-400 text-xs md:text-sm">{post.platform} • {post.createdAt?.toDate?.() ? new Date(post.createdAt.toDate()).toLocaleDateString('ar-SA') : 'اليوم'}</p></div><span className={`px-3 py-1 rounded-full text-xs ${post.status === 'published' ? 'bg-emerald-500/20 text-emerald-400' : post.status === 'scheduled' ? 'bg-amber-500/20 text-amber-400' : 'bg-dark-600 text-dark-300'}`}>{post.status === 'published' ? 'منشور' : post.status === 'scheduled' ? 'مجدول' : 'مسودة'}</span></div>)}</div>
-                        )}
+                    <div className="glass-card rounded-3xl p-6 md:p-8">
+                        <textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus h-32 resize-none" placeholder="مثال: عرض خصم 30% على سماعات البلوتوث..." />
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                            <div><label className="block text-slate-600 text-sm font-medium mb-2">المنصة</label><select value={platform} onChange={e => setPlatform(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none input-focus"><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>Twitter</option></select></div>
+                            <div><label className="block text-slate-600 text-sm font-medium mb-2">نبرة الصوت</label><select value={tone} onChange={e => setTone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none input-focus"><option>احترافي</option><option>حماسي</option><option>ودود</option><option>فخري</option></select></div>
+                        </div>
+                        <button onClick={generate} disabled={loading || !prompt.trim()} className="w-full mt-6 py-4 btn-primary disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed rounded-xl text-white font-bold ripple flex items-center justify-center gap-2">{loading ? <><div className="spinner" style={{width:'20px',height:'20px',borderWidth:'2px',borderTopColor:'#fff'}}></div>جاري التوليد...</> : '✨ توليد المحتوى'}</button>
                     </div>
+                    {results && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="glass-card rounded-2xl p-6 slide-in"><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-slate-800">📝 الكابشن</h3><button onClick={() => copy(results.caption)} className="px-4 py-2 bg-brand-50 text-brand-600 rounded-xl text-sm font-medium">نسخ</button></div><div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-700 whitespace-pre-line leading-relaxed">{results.caption}</p></div></div>
+                            <div className="glass-card rounded-2xl p-6 slide-in" style={{animationDelay:'0.1s'}}><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-slate-800">#️⃣ الهاشتاجات</h3><button onClick={() => copy(results.hashtags)} className="px-4 py-2 bg-brand-50 text-brand-600 rounded-xl text-sm font-medium">نسخ</button></div><div className="bg-slate-50 rounded-xl p-4"><p className="text-brand-600">{results.hashtags}</p></div></div>
+                            <div className="glass-card rounded-2xl p-6 slide-in" style={{animationDelay:'0.2s'}}><h3 className="text-lg font-bold text-slate-800 mb-4">💡 أفكار إضافية</h3><div className="space-y-2">{results.ideas.map((idea, i) => <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"><span className="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs">{i+1}</span><span className="text-slate-700">{idea}</span></div>)}</div></div>
+                            <div className="glass-card rounded-2xl p-6 slide-in" style={{animationDelay:'0.3s'}}><h3 className="text-lg font-bold text-slate-800 mb-4">⏰ أفضل وقت للنشر</h3><div className="bg-gradient-to-r from-brand-500 to-accent-500 rounded-2xl p-8 text-center text-white"><span className="text-4xl">⏰</span><p className="text-3xl font-black mt-3">8 مساءً</p><p className="text-white/80 mt-1">على {platform}</p></div></div>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -642,38 +727,31 @@
             const { addToast } = useToast();
             const [posts, setPosts] = useState([]);
             const [showModal, setShowModal] = useState(false);
-            const [newPost, setNewPost] = useState({ title: '', platform: 'Instagram', type: 'post', date: new Date().toISOString().split('T')[0] });
+            const [newPost, setNewPost] = useState({ title: '', platform: 'Instagram', date: new Date().toISOString().split('T')[0] });
             const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
 
-            useEffect(() => {
-                if (!user) return;
-                const unsubscribe = db.collection('posts').where('userId', '==', user.uid).onSnapshot(snapshot => setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
-                return unsubscribe;
-            }, [user]);
+            useEffect(() => { if (user) db.collection('posts').where('userId', '==', user.uid).onSnapshot(s => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() })))); }, [user]);
 
             const addPost = async () => {
                 if (!newPost.title) return;
-                await db.collection('posts').add({ ...newPost, userId: user.uid, status: 'draft', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                setShowModal(false); setNewPost({ title: '', platform: 'Instagram', type: 'post', date: new Date().toISOString().split('T')[0] });
+                await db.collection('posts').add({ ...newPost, userId: user.uid, status: 'scheduled', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                setShowModal(false); setNewPost({ title: '', platform: 'Instagram', date: new Date().toISOString().split('T')[0] });
                 addToast('تمت إضافة المنشور!');
             };
 
-            const getPostsForDay = (day) => posts.filter(p => p.date === `2026-07-${String(day).padStart(2, '0')}`);
-            const platforms = { 'Instagram': 'from-pink-500 to-purple-500', 'TikTok': 'from-dark-700 to-dark-900', 'Facebook': 'from-blue-500 to-blue-700', 'Twitter': 'from-sky-400 to-sky-600' };
-
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-white">يوليو 2026</h3><button onClick={() => setShowModal(true)} className="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium text-sm flex items-center gap-2"><span>+</span>إضافة</button></div>
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-dark-400 text-xs md:text-sm py-2">{d}</div>)}</div>
-                        <div className="grid grid-cols-7 gap-1 md:gap-2">{Array.from({length:3}).map((_,i) => <div key={`e${i}`} className="h-16 md:h-24 bg-dark-800/30 rounded-xl"></div>)}{Array.from({length:31}).map((_,i) => {const day=i+1;const dayPosts=getPostsForDay(day);return <div key={day} className={`h-16 md:h-24 rounded-xl p-1 md:p-2 ${day===9?'bg-brand-500/10 border-2 border-brand-500':'bg-dark-800/50 hover:bg-dark-700/50'} cursor-pointer`}><span className={`text-xs md:text-sm ${day===9?'text-brand-400':'text-dark-300'}`}>{day}</span>{dayPosts.length>0&&<div className="mt-1 hidden md:block">{dayPosts.slice(0,2).map(p=><div key={p.id} className={`text-xs p-1 rounded truncate bg-gradient-to-r ${platforms[p.platform]||'bg-dark-600'} text-white`}>{p.title}</div>)}{dayPosts.length>2&&<span className="text-xs text-dark-400">+{dayPosts.length-2}</span>}</div>}</div>})}</div>
+                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-slate-800">يوليو 2026</h3><button onClick={() => setShowModal(true)} className="px-5 py-2.5 btn-primary rounded-xl text-white font-bold ripple">+ إضافة منشور</button></div>
+                    <div className="glass-card rounded-2xl p-6">
+                        <div className="grid grid-cols-7 gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-slate-500 text-sm font-medium py-2">{d}</div>)}</div>
+                        <div className="grid grid-cols-7 gap-2">{Array.from({length:3}).map((_,i) => <div key={`e${i}`} className="h-24 bg-slate-50 rounded-xl"></div>)}{Array.from({length:31}).map((_,i) => <div key={i} className={`h-24 rounded-xl p-2 ${i+1===9?'bg-brand-50 border-2 border-brand-400':'bg-slate-50 hover:bg-slate-100'} cursor-pointer transition-all card-hover`}><span className={`text-sm ${i+1===9?'text-brand-600 font-bold':'text-slate-600'}`}>{i+1}</span></div>)}</div>
                     </div>
                     <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="إضافة منشور جديد">
                         <div className="space-y-4">
-                            <div><label className="block text-dark-300 text-sm mb-2">العنوان</label><input type="text" value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="عنوان المنشور..." /></div>
-                            <div><label className="block text-dark-300 text-sm mb-2">المنصة</label><select value={newPost.platform} onChange={e => setNewPost({...newPost, platform: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>Twitter</option></select></div>
-                            <div><label className="block text-dark-300 text-sm mb-2">التاريخ</label><input type="date" value={newPost.date} onChange={e => setNewPost({...newPost, date: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
-                            <button onClick={addPost} className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">إضافة المنشور</button>
+                            <div><label className="block text-slate-600 text-sm font-medium mb-2">العنوان</label><input type="text" value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none input-focus" placeholder="عنوان المنشور..." /></div>
+                            <div><label className="block text-slate-600 text-sm font-medium mb-2">المنصة</label><select value={newPost.platform} onChange={e => setNewPost({...newPost, platform: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none input-focus"><option>Instagram</option><option>TikTok</option><option>Facebook</option></select></div>
+                            <div><label className="block text-slate-600 text-sm font-medium mb-2">التاريخ</label><input type="date" value={newPost.date} onChange={e => setNewPost({...newPost, date: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none input-focus" /></div>
+                            <button onClick={addPost} className="w-full py-3 btn-primary rounded-xl text-white font-bold ripple">إضافة المنشور</button>
                         </div>
                     </Modal>
                 </div>
@@ -686,18 +764,11 @@
                 { id: 2, name: 'منتج جديد', color: 'from-brand-500 to-purple-500', preview: '✨ وصلنا الجديد' },
                 { id: 3, name: 'نصيحة', color: 'from-emerald-500 to-teal-500', preview: '💡 نصيحة اليوم' },
                 { id: 4, name: 'رأي عميل', color: 'from-amber-500 to-orange-500', preview: '⭐ آراء عملائنا' },
-                { id: 5, name: 'خلف الكواليس', color: 'from-cyan-500 to-blue-500', preview: '🎬 من وراء الكواليس' },
-                { id: 6, name: 'عد تنازلي', color: 'from-rose-500 to-red-500', preview: '⏰ العد بدأ' },
             ];
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <h3 className="text-xl md:text-2xl font-bold text-white">مكتبة القوالب</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">{templates.map(t => (
-                        <div key={t.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
-                            <div className={`h-28 md:h-32 bg-gradient-to-br ${t.color} flex items-center justify-center`}><p className="text-white text-lg md:text-xl font-bold">{t.preview}</p></div>
-                            <div className="p-4"><h4 className="text-white font-bold">{t.name}</h4><button className="w-full mt-3 px-4 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm hover:bg-brand-500/30">استخدام</button></div>
-                        </div>
-                    ))}</div>
+                    <h3 className="text-xl md:text-2xl font-bold text-slate-800">مكتبة القوالب</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">{templates.map(t => <div key={t.id} className="glass-card rounded-2xl overflow-hidden card-hover"><div className={`h-32 bg-gradient-to-br ${t.color} flex items-center justify-center`}><p className="text-white text-xl font-bold">{t.preview}</p></div><div className="p-4"><h4 className="text-slate-800 font-bold">{t.name}</h4><button className="w-full mt-3 py-2 bg-brand-50 text-brand-600 rounded-xl text-sm font-medium hover:bg-brand-100 transition-colors">استخدام</button></div></div>)}</div>
                 </div>
             );
         }
@@ -708,42 +779,26 @@
             const [input, setInput] = useState('');
             const [results, setResults] = useState(null);
             const [loading, setLoading] = useState(false);
-
             const generate = () => {
                 if (!input.trim()) return;
                 setLoading(true);
                 setTimeout(() => {
                     setResults([
                         { title: 'رسمي', caption: `📢 ${input}\n\nنقدم لكم أفضل المنتجات بجودة عالية\n\n🛒 اطلب الآن!`, hashtags: '#تسوق #عروض #جودة' },
-                        { title: 'حماسي', caption: `🔥 ${input} 🔥\n\nلا تفوّت الفرصة! ✨\nالكمية محدودة!`, hashtags: '#عرض_حصري #تسوق_الان' },
-                        { title: 'عاطفي', caption: `💜 ${input}\n\nنعرف إنكم تستاهلون الأفضل ❤️\n\n🤝 ثقتكم غالية علينا`, hashtags: '#عملائنا_أغلى #ثقة' },
+                        { title: 'حماسي', caption: `🔥 ${input} 🔥\n\nلا تفوّت الفرصة! ✨`, hashtags: '#عرض_حصري #تسوق_الان' },
+                        { title: 'عاطفي', caption: `💜 ${input}\n\nنعرف إنكم تستاهلون الأفضل ❤️`, hashtags: '#عملائنا_أغلى #ثقة' },
                     ]);
                     setLoading(false);
                 }, 1200);
             };
-
             const copy = (text) => { navigator.clipboard.writeText(text); addToast('تم النسخ!'); };
-
-            const saveCaption = async (cap) => {
-                await db.collection('posts').add({ title: cap.title, content: cap.caption, hashtags: cap.hashtags, userId: user.uid, status: 'draft', platform: 'Instagram', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                addToast('تم حفظ الكابشن!');
-            };
-
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h3 className="text-lg md:text-xl font-bold text-white mb-4">✍️ اكتب فكرة المنشور</h3>
-                        <textarea value={input} onChange={e => setInput(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 h-28 md:h-32 resize-none" placeholder="مثال: عرض خصم 20% على سماعات..." />
-                        <button onClick={generate} disabled={loading || !input.trim()} className="mt-4 px-6 py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors flex items-center gap-2">{loading ? <><div className="spinner" style={{width:'16px',height:'16px',borderWidth:'2px'}}></div>جاري التوليد...</> : '✨ توليد الكابشنات'}</button>
+                    <div className="glass-card rounded-2xl p-6">
+                        <textarea value={input} onChange={e => setInput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus h-32 resize-none" placeholder="اكتب فكرة المنشور..." />
+                        <button onClick={generate} disabled={loading || !input.trim()} className="mt-4 px-8 py-3 btn-primary rounded-xl text-white font-bold ripple">{loading ? 'جاري التوليد...' : '✨ توليد الكابشنات'}</button>
                     </div>
-                    {results && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{results.map((c, i) => (
-                        <div key={i} className="glass-card rounded-2xl p-4 md:p-5 slide-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                            <h4 className="text-brand-400 font-bold mb-3">{c.title}</h4>
-                            <div className="bg-dark-800 rounded-xl p-3 md:p-4 mb-3"><p className="text-white text-sm whitespace-pre-line">{c.caption}</p></div>
-                            <p className="text-brand-300 text-xs mb-3">{c.hashtags}</p>
-                            <div className="flex gap-2"><button onClick={() => copy(c.caption)} className="flex-1 px-3 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button><button onClick={() => saveCaption(c)} className="px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm">حفظ</button></div>
-                        </div>
-                    ))}</div>}
+                    {results && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{results.map((c,i) => <div key={i} className="glass-card rounded-2xl p-5 slide-in"><h4 className="text-brand-600 font-bold mb-3">{c.title}</h4><div className="bg-slate-50 rounded-xl p-4 mb-3"><p className="text-slate-700 text-sm whitespace-pre-line">{c.caption}</p></div><p className="text-brand-500 text-xs mb-3">{c.hashtags}</p><button onClick={() => copy(c.caption)} className="w-full py-2 bg-brand-50 text-brand-600 rounded-xl text-sm font-medium">نسخ</button></div>)}</div>}
                 </div>
             );
         }
@@ -751,32 +806,12 @@
         function HashtagsPage() {
             const { addToast } = useToast();
             const [search, setSearch] = useState('');
-            const [copied, setCopied] = useState([]);
-            const tags = ['#تسوق_اونلاين', '#عروض', '#منتجات', '#خصم', '#شحن_سريع', '#جودة_عالية', '#ماركتنج', '#سوشيال_ميديا', '#عملاء', '#توفير', '#منتجات_جديدة', '#عرض_الصيف'];
+            const tags = ['#تسوق_اونلاين', '#عروض', '#منتجات', '#خصم', '#شحن_سريع', '#جودة_عالية', '#ماركتنج', '#سوشيال_ميديا', '#عملاء', '#توفير'];
             const filtered = tags.filter(t => t.includes(search));
-
-            const toggleCopy = (tag) => {
-                if (copied.includes(tag)) setCopied(copied.filter(t => t !== tag));
-                else setCopied([...copied, tag]);
-            };
-
-            const copyAll = () => { navigator.clipboard.writeText(copied.join(' ')); addToast(`تم نسخ ${copied.length} هاشتاجات!`); };
-
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="ابحث عن هاشتاج..." />
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">{filtered.map((t, i) => (
-                        <div key={i} onClick={() => toggleCopy(t)} className={`glass-card rounded-xl p-3 md:p-4 hover-lift cursor-pointer transition-all ${copied.includes(t) ? 'ring-2 ring-brand-500' : ''}`}>
-                            <p className="text-brand-400 font-bold text-sm md:text-base">{t}</p>
-                            <p className="text-dark-400 text-xs mt-1">{copied.includes(t) ? '✓ محدد' : 'اضغط للتحديد'}</p>
-                        </div>
-                    ))}</div>
-                    {copied.length > 0 && (
-                        <div className="glass-card rounded-2xl p-4 sticky bottom-20 md:bottom-4 flex items-center justify-between">
-                            <span className="text-white text-sm">📋 {copied.length} هاشتاجات</span>
-                            <div className="flex gap-2"><button onClick={copyAll} className="px-4 py-2 bg-brand-500 rounded-xl text-white text-sm">نسخ الكل</button><button onClick={() => setCopied([])} className="px-4 py-2 bg-dark-700 rounded-xl text-dark-300 text-sm">مسح</button></div>
-                        </div>
-                    )}
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus shadow-sm" placeholder="ابحث عن هاشتاج..." />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{filtered.map((t,i) => <div key={i} onClick={() => { navigator.clipboard.writeText(t); addToast('تم النسخ!'); }} className="glass-card rounded-xl p-4 card-hover cursor-pointer text-center"><p className="text-brand-600 font-bold">{t}</p><p className="text-slate-400 text-xs mt-2">اضغط للنسخ</p></div>)}</div>
                 </div>
             );
         }
@@ -785,59 +820,69 @@
             const { user } = useAuth();
             const { addToast } = useToast();
             const [files, setFiles] = useState([]);
-            const [uploading, setUploading] = useState(false);
             const fileInput = useRef(null);
-
-            useEffect(() => {
-                if (!user) return;
-                const unsubscribe = db.collection('media').where('userId', '==', user.uid).onSnapshot(snapshot => setFiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
-                return unsubscribe;
-            }, [user]);
-
+            useEffect(() => { if (user) db.collection('media').where('userId', '==', user.uid).onSnapshot(s => setFiles(s.docs.map(d => ({ id: d.id, ...d.data() })))); }, [user]);
             const uploadFile = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                setUploading(true);
+                addToast('جاري الرفع...');
                 const storageRef = storage.ref(`media/${user.uid}/${file.name}`);
                 await storageRef.put(file);
                 const url = await storageRef.getDownloadURL();
                 await db.collection('media').add({ name: file.name, type: file.type, size: file.size, url, userId: user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                setUploading(false); addToast('تم رفع الملف!');
+                addToast('تم رفع الملف!');
             };
-
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-white">مكتبة الوسائط</h3><input type="file" ref={fileInput} onChange={uploadFile} className="hidden" accept="image/*,video/*" /><button onClick={() => fileInput.current.click()} disabled={uploading} className="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium text-sm flex items-center gap-2">{uploading ? 'جاري الرفع...' : '+ رفع ملف'}</button></div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">{files.map(file => (
-                        <div key={file.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
-                            <div className="h-24 md:h-32 bg-gradient-to-br from-brand-500/20 to-pink-500/20 flex items-center justify-center">
-                                {file.type?.startsWith('image/') ? <img src={file.url} className="w-full h-full object-cover" /> : <span className="text-3xl">🎬</span>}
-                            </div>
-                            <div className="p-3"><p className="text-white text-sm font-medium truncate">{file.name}</p><p className="text-dark-400 text-xs">{(file.size / 1024 / 1024).toFixed(1)} MB</p></div>
+                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-slate-800">مكتبة الوسائط</h3><input type="file" ref={fileInput} onChange={uploadFile} className="hidden" accept="image/*,video/*" /><button onClick={() => fileInput.current.click()} className="px-5 py-2.5 btn-primary rounded-xl text-white font-bold ripple">+ رفع ملف</button></div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{files.map(file => <div key={file.id} className="glass-card rounded-2xl overflow-hidden card-hover"><div className="h-32 bg-gradient-to-br from-brand-100 to-pink-100 flex items-center justify-center">{file.type?.startsWith('image/') ? <img src={file.url} className="w-full h-full object-cover" /> : <span className="text-4xl">🎬</span>}</div><div className="p-3"><p className="text-slate-800 text-sm font-medium truncate">{file.name}</p></div></div>)}</div>
+                    {files.length === 0 && <p className="text-slate-400 text-center py-12">لا توجد ملفات بعد</p>}
+                </div>
+            );
+        }
+
+        function TeamPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
+            const [team, setTeam] = useState([]);
+            const [showInvite, setShowInvite] = useState(false);
+            const [inviteEmail, setInviteEmail] = useState('');
+            useEffect(() => { if (user) db.collection('teams').where('ownerId', '==', user.uid).onSnapshot(s => setTeam(s.docs.map(d => ({ id: d.id, ...d.data() })))), }, [user]);
+            const inviteMember = async () => {
+                if (!inviteEmail) return;
+                await db.collection('teams').add({ ownerId: user.uid, email: inviteEmail, role: 'editor', status: 'pending', invitedBy: user.displayName || user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                setShowInvite(false); setInviteEmail(''); addToast('تم إرسال الدعوة!');
+            };
+            return (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-slate-800">👥 فريق العمل</h3><button onClick={() => setShowInvite(true)} className="px-5 py-2.5 btn-primary rounded-xl text-white font-bold ripple">+ دعوة عضو</button></div>
+                    <div className="glass-card rounded-2xl p-6">
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-4 p-4 bg-brand-50 rounded-xl border border-brand-200"><div className="w-12 h-12 rounded-xl gradient-brand flex items-center justify-center text-white font-bold shadow-lg">{user?.displayName?.charAt(0) || 'م'}</div><div className="flex-1"><p className="text-slate-800 font-bold">{user?.displayName || 'أنت'}</p><p className="text-slate-500 text-sm">{user?.email}</p></div><span className="px-3 py-1 bg-brand-500 text-white rounded-full text-xs font-bold">مالك</span></div>
+                            {team.map(m => <div key={m.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white font-bold">{m.email.charAt(0).toUpperCase()}</div><div className="flex-1"><p className="text-slate-800 font-medium">{m.email}</p></div><span className="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-xs font-bold">{m.role === 'editor' ? 'محرر' : 'مشاهد'}</span></div>)}
                         </div>
-                    ))}</div>
-                    {files.length === 0 && <p className="text-dark-400 text-center py-12">لا توجد ملفات بعد. ارفع أول ملف!</p>}
+                    </div>
+                    <Modal isOpen={showInvite} onClose={() => setShowInvite(false)} title="دعوة عضو جديد">
+                        <div className="space-y-4">
+                            <div><label className="block text-slate-600 text-sm font-medium mb-2">البريد الإلكتروني</label><input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none input-focus" /></div>
+                            <button onClick={inviteMember} className="w-full py-3 btn-primary rounded-xl text-white font-bold ripple">إرسال الدعوة</button>
+                        </div>
+                    </Modal>
                 </div>
             );
         }
 
         function MessagesPage() {
-            const templates = [
-                { id: 1, category: 'استفسار سعر', template: 'مرحبًا! 😊\nسعر المنتج هو [السعر] ريال\nمع شحن مجاني للطلبات فوق 200 ريال' },
-                { id: 2, category: 'شحن', template: 'مرحبًا! 📦\nالشحن خلال 3-5 أيام عمل داخل المملكة' },
-                { id: 3, category: 'شكوى', template: 'مرحبًا! نعتذر عن أي إزعاج 🙏\nنحب نحل المشكلة فورًا' },
-                { id: 4, category: 'شكر', template: 'شكرًا لاختيارك متجرنا! 💜\nنتمنى يعجبك المنتج' },
-            ];
             const { addToast } = useToast();
+            const templates = [
+                { id: 1, category: 'استفسار سعر', template: 'مرحبًا! 😊\nسعر المنتج هو [السعر] جنيه مصري\nمع شحن مجاني للطلبات فوق 500 جنيه' },
+                { id: 2, category: 'شحن', template: 'مرحبًا! 📦\nالشحن خلال 3-5 أيام عمل داخل مصر' },
+                { id: 3, category: 'شكوى', template: 'مرحبًا! نعتذر عن أي إزعاج 🙏\nنحب نحل المشكلة فورًا' },
+            ];
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <h3 className="text-xl md:text-2xl font-bold text-white">إدارة الرسائل</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{templates.map(t => (
-                        <div key={t.id} className="glass-card rounded-2xl p-4 md:p-5">
-                            <div className="flex items-center justify-between mb-3"><h4 className="text-white font-bold">{t.category}</h4><button onClick={() => { navigator.clipboard.writeText(t.template); addToast('تم النسخ!'); }} className="px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg text-xs">نسخ</button></div>
-                            <div className="bg-dark-800 rounded-xl p-3 md:p-4"><p className="text-dark-200 text-sm whitespace-pre-line">{t.template}</p></div>
-                        </div>
-                    ))}</div>
+                    <h3 className="text-xl md:text-2xl font-bold text-slate-800">إدارة الرسائل</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{templates.map(t => <div key={t.id} className="glass-card rounded-2xl p-5"><div className="flex items-center justify-between mb-3"><h4 className="text-slate-800 font-bold">{t.category}</h4><button onClick={() => { navigator.clipboard.writeText(t.template); addToast('تم النسخ!'); }} className="px-3 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-xs font-medium">نسخ</button></div><div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-600 text-sm whitespace-pre-line">{t.template}</p></div></div>)}</div>
                 </div>
             );
         }
@@ -846,435 +891,15 @@
             const { user } = useAuth();
             const [posts, setPosts] = useState([]);
             useEffect(() => { if (user) db.collection('posts').where('userId', '==', user.uid).onSnapshot(s => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() })))); }, [user]);
-            const platforms = { Instagram: { count: posts.filter(p => p.platform === 'Instagram').length, color: 'from-pink-500 to-purple-500' }, TikTok: { count: posts.filter(p => p.platform === 'TikTok').length, color: 'from-dark-700 to-dark-900' }, Facebook: { count: posts.filter(p => p.platform === 'Facebook').length, color: 'from-blue-500 to-blue-700' }, Twitter: { count: posts.filter(p => p.platform === 'Twitter').length, color: 'from-sky-400 to-sky-600' } };
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <h3 className="text-xl md:text-2xl font-bold text-white">تحليل الأداء</h3>
+                    <h3 className="text-xl md:text-2xl font-bold text-slate-800">تحليل الأداء</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-white">{posts.length}</p><p className="text-dark-400 text-sm">إجمالي المنشورات</p></div>
-                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-emerald-400">{posts.filter(p => p.status === 'published').length}</p><p className="text-dark-400 text-sm">منشور</p></div>
-                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-amber-400">{posts.filter(p => p.status === 'draft').length}</p><p className="text-dark-400 text-sm">مسودة</p></div>
-                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-brand-400">{Object.keys(platforms).length}</p><p className="text-dark-400 text-sm">منصات</p></div>
+                        <div className="glass-card rounded-2xl p-5 text-center card-hover"><p className="text-4xl font-black text-slate-800">{posts.length}</p><p className="text-slate-500 text-sm mt-1">إجمالي المنشورات</p></div>
+                        <div className="glass-card rounded-2xl p-5 text-center card-hover"><p className="text-4xl font-black text-emerald-500">{posts.filter(p => p.status === 'published').length}</p><p className="text-slate-500 text-sm mt-1">منشور</p></div>
+                        <div className="glass-card rounded-2xl p-5 text-center card-hover"><p className="text-4xl font-black text-amber-500">{posts.filter(p => p.status === 'draft').length}</p><p className="text-slate-500 text-sm mt-1">مسودة</p></div>
+                        <div className="glass-card rounded-2xl p-5 text-center card-hover"><p className="text-4xl font-black text-brand-500">4</p><p className="text-slate-500 text-sm mt-1">منصات</p></div>
                     </div>
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">توزيع المنشورات حسب المنصة</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Object.entries(platforms).map(([name, data], i) => (
-                            <div key={i} className="bg-dark-800/50 rounded-xl p-4 text-center"><div className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-br ${data.color} flex items-center justify-center text-white font-bold mb-2`}>{name.charAt(0)}</div><p className="text-white font-bold">{name}</p><p className="text-brand-400 text-2xl font-bold mt-1">{data.count}</p><p className="text-dark-400 text-xs">منشور</p></div>
-                        ))}</div>
-                    </div>
-                </div>
-            );
-        }
-
-        // ==================== AI CONTENT GENERATOR ====================
-        function AIContentPage() {
-            const { user } = useAuth();
-            const { addToast } = useToast();
-            const [prompt, setPrompt] = useState('');
-            const [platform, setPlatform] = useState('Instagram');
-            const [tone, setTone] = useState('احترافي');
-            const [results, setResults] = useState(null);
-            const [loading, setLoading] = useState(false);
-            const [history, setHistory] = useState([]);
-
-            useEffect(() => {
-                if (!user) return;
-                const unsub = db.collection('ai_history').where('userId', '==', user.uid).orderBy('createdAt', 'desc').limit(10).onSnapshot(s => setHistory(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-                return unsub;
-            }, [user]);
-
-            const generateContent = async () => {
-                if (!prompt.trim()) return;
-                setLoading(true);
-                
-                // Simulate AI generation (in production, connect to OpenAI API)
-                await new Promise(r => setTimeout(r, 2000));
-                
-                const tones = {
-                    'احترافي': { prefix: '📢', style: 'رسمي ومحترف' },
-                    'حماسي': { prefix: '🔥', style: 'مشوق وحKindOfClass' },
-                    'ودود': { prefix: '😊', style: 'ودود وقريب' },
-                    'فخري': { prefix: '✨', style: 'فاخر وراقي' },
-                };
-                
-                const t = tones[tone];
-                const generated = {
-                    caption: `${t.prefix} ${prompt}\n\n${getCaptionByPlatform(platform, tone)}`,
-                    hashtags: getHashtags(prompt),
-                    ideas: getContentIdeas(prompt),
-                    bestTime: getBestTime(platform),
-                };
-                
-                setResults(generated);
-                
-                // Save to history
-                await db.collection('ai_history').add({
-                    userId: user.uid,
-                    prompt,
-                    platform,
-                    tone,
-                    result: generated,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                setLoading(false);
-                addToast('تم توليد المحتوى بنجاح!');
-            };
-
-            const getCaptionByPlatform = (p, t) => {
-                const captions = {
-                    'Instagram': '\n\nنقدم لكم محتوى حصري على إنستغرام\n\n📸 تابعونا للمزيد\n💡 فعّلوا التنبيهات\n\n#إنستغرام #محتوى_أصلي',
-                    'TikTok': '\n\n🎬 فيديو جديد على تيك توك!\n\n🎵 لا تفوّتوا الفيديو\n👆 اضغط المتابعة\n\n#تيك_توك #ترند',
-                    'Facebook': '\n\n📢 منشور جديد على فيسبوك\n\n💬 شاركونا رأيكم\n👍 لا تنسوا الإعجاب\n\n#فيسبوك #مجتمع',
-                    'Twitter': '\n\n🐦 تغريدة جديدة\n\n🔄 ريتويت للمشاركة\n❤️ لايك إذا عجبكم\n\n#تويتر #بايو',
-                };
-                return captions[p] || captions['Instagram'];
-            };
-
-            const getHashtags = (p) => {
-                return `#${p.replace(/\s/g, '_')} #محتوى_أصلي #تسويق_الكتروني #سوشيال_ميديا # marque`;
-            };
-
-            const getContentIdeas = (p) => [
-                `فيديو قصير عن ${p}`,
-                `بوست كاروسيل بـ 5 صور`,
-                `ستوري تفاعلية مع استفتاء`,
-                `ريلز مع موسيقى ترند`,
-                `بوست نصيحة مفيدة`,
-            ];
-
-            const getBestTime = (p) => {
-                const times = { 'Instagram': '8 مساءً', 'TikTok': '7 مساءً', 'Facebook': '1 ظهراً', 'Twitter': '12 ظهراً' };
-                return times[p] || '8 مساءً';
-            };
-
-            const copy = (text) => { navigator.clipboard.writeText(text); addToast('تم النسخ!'); };
-
-            return (
-                <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="bg-gradient-to-r from-brand-500/20 to-pink-500/20 rounded-2xl p-6 border border-brand-500/20">
-                        <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">🤖 مولّد المحتوى بالذكاء الاصطناعي</h2>
-                        <p className="text-dark-300 mt-1">اكتب فكرتك ودع الذكاء الاصطناعي يصنع لك المحتوى</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 glass-card rounded-2xl p-4 md:p-6">
-                            <h3 className="text-lg font-bold text-white mb-4">✍️ اكتب فكرتك</h3>
-                            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 h-32 resize-none" placeholder="مثال: عرض خصم 30% على سماعات البلوتوث الجديدة مع ضمان سنة..." />
-                            
-                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                <div>
-                                    <label className="block text-dark-300 text-sm mb-2">المنصة</label>
-                                    <select value={platform} onChange={e => setPlatform(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500">
-                                        <option>Instagram</option>
-                                        <option>TikTok</option>
-                                        <option>Facebook</option>
-                                        <option>Twitter</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-dark-300 text-sm mb-2">نبرة الصوت</label>
-                                    <select value={tone} onChange={e => setTone(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500">
-                                        <option>احترافي</option>
-                                        <option>حماسي</option>
-                                        <option>ودود</option>
-                                        <option>فخري</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <button onClick={generateContent} disabled={loading || !prompt.trim()} className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-brand-500 to-pink-500 hover:from-brand-600 hover:to-pink-600 disabled:from-dark-600 disabled:to-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all flex items-center justify-center gap-2">
-                                {loading ? <><div className="spinner" style={{width:'20px',height:'20px',borderWidth:'2px',borderTopColor:'#fff'}}></div> جاري التوليد...</> : '✨ توليد المحتوى'}
-                            </button>
-                        </div>
-
-                        <div className="glass-card rounded-2xl p-4 md:p-6">
-                            <h3 className="text-lg font-bold text-white mb-4">📜 السجل</h3>
-                            <div className="space-y-3 max-h-64 overflow-y-auto">
-                                {history.length === 0 ? <p className="text-dark-400 text-sm text-center">لا يوجد سجل بعد</p> : 
-                                    history.map(h => (
-                                        <div key={h.id} className="p-3 bg-dark-800/50 rounded-xl cursor-pointer hover:bg-dark-800" onClick={() => { setPrompt(h.prompt); setPlatform(h.platform); setTone(h.tone); }}>
-                                            <p className="text-white text-sm truncate">{h.prompt}</p>
-                                            <p className="text-dark-400 text-xs mt-1">{h.platform} • {h.tone}</p>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    {results && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-bold text-white">📝 الكابشن</h3>
-                                    <button onClick={() => copy(results.caption)} className="px-3 py-1 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button>
-                                </div>
-                                <div className="bg-dark-800 rounded-xl p-4"><p className="text-white whitespace-pre-line leading-relaxed">{results.caption}</p></div>
-                            </div>
-
-                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in" style={{animationDelay:'0.1s'}}>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-bold text-white">#️⃣ الهاشتاجات</h3>
-                                    <button onClick={() => copy(results.hashtags)} className="px-3 py-1 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button>
-                                </div>
-                                <div className="bg-dark-800 rounded-xl p-4"><p className="text-brand-300">{results.hashtags}</p></div>
-                            </div>
-
-                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in" style={{animationDelay:'0.2s'}}>
-                                <h3 className="text-lg font-bold text-white mb-4">💡 أفكار إضافية</h3>
-                                <div className="space-y-2">{results.ideas.map((idea, i) => (
-                                    <div key={i} className="flex items-center gap-2 p-3 bg-dark-800/50 rounded-xl">
-                                        <span className="text-brand-400">•</span>
-                                        <span className="text-white text-sm">{idea}</span>
-                                    </div>
-                                ))}</div>
-                            </div>
-
-                            <div className="glass-card rounded-2xl p-4 md:p-6 slide-in" style={{animationDelay:'0.3s'}}>
-                                <h3 className="text-lg font-bold text-white mb-4">⏰ أفضل وقت للنشر</h3>
-                                <div className="bg-gradient-to-r from-brand-500/20 to-pink-500/20 rounded-xl p-6 text-center">
-                                    <span className="text-4xl">⏰</span>
-                                    <p className="text-2xl font-bold text-white mt-2">{results.bestTime}</p>
-                                    <p className="text-dark-300 text-sm mt-1">على {platform}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        // ==================== ADVANCED CALENDAR ====================
-        function AdvancedCalendarPage() {
-            const { user } = useAuth();
-            const { addToast } = useToast();
-            const [posts, setPosts] = useState([]);
-            const [currentMonth, setCurrentMonth] = useState(new Date(2026, 6));
-            const [selectedDate, setSelectedDate] = useState(null);
-            const [showModal, setShowModal] = useState(false);
-            const [draggedPost, setDraggedPost] = useState(null);
-            const [newPost, setNewPost] = useState({ title: '', platform: 'Instagram', type: 'post', time: '09:00' });
-
-            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
-            const platformColors = { 'Instagram': 'from-pink-500 to-purple-500', 'TikTok': 'from-dark-700 to-dark-900', 'Facebook': 'from-blue-500 to-blue-700', 'Twitter': 'from-sky-400 to-sky-600' };
-            const statusColors = { 'draft': 'bg-dark-500', 'scheduled': 'bg-amber-500', 'published': 'bg-emerald-500' };
-
-            useEffect(() => {
-                if (!user) return;
-                const unsub = db.collection('posts').where('userId', '==', user.uid).onSnapshot(s => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-                return unsub;
-            }, [user]);
-
-            const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-            const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
-            const adjustedFirstDay = (firstDay + 1) % 7;
-
-            const getPostsForDay = (day) => {
-                const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                return posts.filter(p => p.date === dateStr);
-            };
-
-            const handleDragStart = (e, post) => { setDraggedPost(post); e.dataTransfer.effectAllowed = 'move'; };
-            const handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
-            
-            const handleDrop = async (e, day) => {
-                e.preventDefault();
-                if (!draggedPost) return;
-                const newDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                await db.collection('posts').doc(draggedPost.id).update({ date: newDate });
-                setDraggedPost(null);
-                addToast('تم نقل المنشور!');
-            };
-
-            const addPost = async () => {
-                if (!newPost.title || !selectedDate) return;
-                const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(selectedDate).padStart(2,'0')}`;
-                await db.collection('posts').add({ ...newPost, date: dateStr, userId: user.uid, status: 'scheduled', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                setShowModal(false); setNewPost({ title: '', platform: 'Instagram', type: 'post', time: '09:00' });
-                addToast('تمت جدولة المنشور!');
-            };
-
-            const deletePost = async (id) => {
-                await db.collection('posts').doc(id).delete();
-                addToast('تم الحذف!');
-            };
-
-            const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
-            const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
-
-            return (
-                <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <button onClick={prevMonth} className="p-2 bg-dark-700 hover:bg-dark-600 rounded-xl">→</button>
-                            <h2 className="text-xl md:text-2xl font-bold text-white">{months[currentMonth.getMonth()]} {currentMonth.getFullYear()}</h2>
-                            <button onClick={nextMonth} className="p-2 bg-dark-700 hover:bg-dark-600 rounded-xl">←</button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1 text-xs text-dark-400"><div className="w-3 h-3 rounded bg-dark-500"></div>مسودة</div>
-                            <div className="flex items-center gap-1 text-xs text-dark-400"><div className="w-3 h-3 rounded bg-amber-500"></div>مجدول</div>
-                            <div className="flex items-center gap-1 text-xs text-dark-400"><div className="w-3 h-3 rounded bg-emerald-500"></div>منشور</div>
-                        </div>
-                    </div>
-
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-dark-400 text-xs md:text-sm py-2 font-medium">{d}</div>)}</div>
-                        <div className="grid grid-cols-7 gap-1 md:gap-2">
-                            {Array.from({length: adjustedFirstDay}).map((_,i) => <div key={`e${i}`} className="h-16 md:h-28 bg-dark-800/20 rounded-xl"></div>)}
-                            {Array.from({length: daysInMonth}).map((_,i) => {
-                                const day = i + 1;
-                                const dayPosts = getPostsForDay(day);
-                                const isSelected = selectedDate === day;
-                                const isToday = day === 9 && currentMonth.getMonth() === 6;
-                                return (
-                                    <div 
-                                        key={day} 
-                                        className={`h-16 md:h-28 rounded-xl p-1 md:p-2 transition-all cursor-pointer ${isToday ? 'bg-brand-500/20 border-2 border-brand-500' : isSelected ? 'bg-brand-500/10 border border-brand-500' : 'bg-dark-800/50 hover:bg-dark-700/50'}`}
-                                        onClick={() => { setSelectedDate(day); setShowModal(true); }}
-                                        onDragOver={handleDragOver}
-                                        onDrop={(e) => handleDrop(e, day)}
-                                    >
-                                        <span className={`text-xs md:text-sm font-medium ${isToday ? 'text-brand-400' : 'text-dark-300'}`}>{day}</span>
-                                        <div className="mt-1 space-y-1 hidden md:block overflow-hidden">
-                                            {dayPosts.slice(0, 2).map(p => (
-                                                <div 
-                                                    key={p.id} 
-                                                    draggable
-                                                    onDragStart={(e) => handleDragStart(e, p)}
-                                                    className={`text-xs p-1 rounded truncate bg-gradient-to-r ${platformColors[p.platform]||'bg-dark-600'} text-white cursor-move`}
-                                                >
-                                                    {p.title}
-                                                </div>
-                                            ))}
-                                            {dayPosts.length > 2 && <span className="text-xs text-dark-400">+{dayPosts.length - 2}</span>}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">📋 المنشورات المجدولة</h3>
-                        <div className="space-y-3 max-h-64 overflow-y-auto">
-                            {posts.filter(p => p.status === 'scheduled').length === 0 ? (
-                                <p className="text-dark-400 text-center py-4">لا توجد منشورات مجدولة</p>
-                            ) : posts.filter(p => p.status === 'scheduled').map(p => (
-                                <div key={p.id} className="flex items-center gap-3 p-3 bg-dark-800/50 rounded-xl">
-                                    <div className={`w-2 h-full min-h-[40px] rounded-full ${statusColors[p.status]}`}></div>
-                                    <div className="flex-1"><p className="text-white font-medium text-sm">{p.title}</p><p className="text-dark-400 text-xs">{p.date} • {p.time} • {p.platform}</p></div>
-                                    <button onClick={() => deletePost(p.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg">🗑️</button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={`إضافة منصور ليوم ${selectedDate}`}>
-                        <div className="space-y-4">
-                            <div><label className="block text-dark-300 text-sm mb-2">العنوان</label><input type="text" value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="عنوان المنشور..." /></div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><label className="block text-dark-300 text-sm mb-2">المنصة</label><select value={newPost.platform} onChange={e => setNewPost({...newPost, platform: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>Twitter</option></select></div>
-                                <div><label className="block text-dark-300 text-sm mb-2">الوقت</label><input type="time" value={newPost.time} onChange={e => setNewPost({...newPost, time: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
-                            </div>
-                            <button onClick={addPost} className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">جدولة المنشور</button>
-                        </div>
-                    </Modal>
-                </div>
-            );
-        }
-
-        // ==================== TEAM COLLABORATION ====================
-        function TeamPage() {
-            const { user, userData } = useAuth();
-            const { addToast } = useToast();
-            const [team, setTeam] = useState([]);
-            const [showInvite, setShowInvite] = useState(false);
-            const [inviteEmail, setInviteEmail] = useState('');
-            const [inviteRole, setInviteRole] = useState('editor');
-            const [activities, setActivities] = useState([]);
-
-            useEffect(() => {
-                if (!user) return;
-                const unsubTeam = db.collection('teams').where('ownerId', '==', user.uid).onSnapshot(s => setTeam(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-                const unsubActivities = db.collection('activities').where('userId', '==', user.uid).orderBy('createdAt', 'desc').limit(10).onSnapshot(s => setActivities(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-                return () => { unsubTeam(); unsubActivities(); };
-            }, [user]);
-
-            const inviteMember = async () => {
-                if (!inviteEmail) return;
-                await db.collection('teams').add({
-                    ownerId: user.uid,
-                    email: inviteEmail,
-                    role: inviteRole,
-                    status: 'pending',
-                    invitedBy: user.displayName || user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                setShowInvite(false); setInviteEmail('');
-                addToast('تم إرسال الدعوة!');
-            };
-
-            const removeMember = async (id) => {
-                await db.collection('teams').doc(id).delete();
-                addToast('تم إزالة العضو');
-            };
-
-            const roleNames = { 'admin': 'مدير', 'editor': 'محرر', 'viewer': 'مشاهد' };
-            const roleColors = { 'admin': 'from-red-500 to-pink-500', 'editor': 'from-brand-500 to-purple-500', 'viewer': 'from-emerald-500 to-teal-500' };
-
-            return (
-                <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <div className="flex items-center justify-between">
-                        <div><h2 className="text-xl md:text-2xl font-bold text-white">👥 فريق العمل</h2><p className="text-dark-400 text-sm mt-1">{team.length} أعضاء</p></div>
-                        <button onClick={() => setShowInvite(true)} className="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium text-sm flex items-center gap-2"><span>+</span>دعوة عضو</button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="glass-card rounded-2xl p-5 text-center"><p className="text-3xl font-bold text-white">{team.length + 1}</p><p className="text-dark-400 text-sm">إجمالي الأعضاء</p></div>
-                        <div className="glass-card rounded-2xl p-5 text-center"><p className="text-3xl font-bold text-emerald-400">{team.filter(t => t.status === 'active').length}</p><p className="text-dark-400 text-sm">عضو نشط</p></div>
-                        <div className="glass-card rounded-2xl p-5 text-center"><p className="text-3xl font-bold text-amber-400">{team.filter(t => t.status === 'pending').length}</p><p className="text-dark-400 text-sm">بانتظار القبول</p></div>
-                    </div>
-
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">أعضاء الفريق</h3>
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-brand-500/10 to-pink-500/10 rounded-xl border border-brand-500/20">
-                                <div className="w-12 h-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">{user?.displayName?.charAt(0) || 'م'}</div>
-                                <div className="flex-1"><p className="text-white font-bold">{user?.displayName || 'أنت'}</p><p className="text-dark-400 text-sm">{user?.email}</p></div>
-                                <span className="px-3 py-1 bg-brand-500/20 text-brand-400 rounded-full text-xs font-medium">مالك</span>
-                            </div>
-                            {team.map(member => (
-                                <div key={member.id} className="flex items-center gap-4 p-4 bg-dark-800/50 rounded-xl hover:bg-dark-800 transition-colors">
-                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${roleColors[member.role]} flex items-center justify-center text-white font-bold`}>{member.email.charAt(0).toUpperCase()}</div>
-                                    <div className="flex-1"><p className="text-white font-medium">{member.email}</p><p className="text-dark-400 text-xs">دعوة من {member.invitedBy}</p></div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${member.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{roleNames[member.role]}</span>
-                                    <button onClick={() => removeMember(member.id)} className="p-2 text-dark-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg">🗑️</button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">📜 آخر النشاطات</h3>
-                        <div className="space-y-3">
-                            {activities.length === 0 ? <p className="text-dark-400 text-center py-4">لا توجد نشاطات بعد</p> : activities.map(a => (
-                                <div key={a.id} className="flex items-center gap-3 p-3 bg-dark-800/50 rounded-xl">
-                                    <span className="text-xl">{a.icon || '📝'}</span>
-                                    <div className="flex-1"><p className="text-white text-sm">{a.message}</p><p className="text-dark-400 text-xs">{a.createdAt?.toDate?.() ? new Date(a.createdAt.toDate()).toLocaleDateString('ar-SA') : 'اليوم'}</p></div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <Modal isOpen={showInvite} onClose={() => setShowInvite(false)} title="دعوة عضو جديد">
-                        <div className="space-y-4">
-                            <div><label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label><input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="email@example.com" /></div>
-                            <div><label className="block text-dark-300 text-sm mb-2">الدور</label><select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"><option value="editor">محرر - يمكنه تعديل المنشورات</option><option value="viewer">مشاهد - يمكنه المشاهدة فقط</option><option value="admin">مدير - صلاحيات كاملة</option></select></div>
-                            <button onClick={inviteMember} className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">إرسال الدعوة</button>
-                        </div>
-                    </Modal>
                 </div>
             );
         }
@@ -1284,21 +909,19 @@
             const { addToast } = useToast();
             const [name, setName] = useState(userData?.name || '');
             const [saving, setSaving] = useState(false);
-
             const save = async () => { setSaving(true); await updateProfile({ name }); addToast('تم الحفظ!'); setSaving(false); };
-
             return (
                 <div className="space-y-6 fade-in pb-20 md:pb-6">
-                    <h3 className="text-xl md:text-2xl font-bold text-white">الإعدادات</h3>
-                    <div className="glass-card rounded-2xl p-4 md:p-6 space-y-4">
-                        <h4 className="text-lg font-bold text-white">الملف الشخصي</h4>
-                        <div><label className="block text-dark-300 text-sm mb-2">الاسم</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
-                        <div><label className="block text-dark-300 text-sm mb-2">البريد</label><input type="email" value={user?.email || ''} disabled className="w-full bg-dark-800/50 border border-dark-600 rounded-xl px-4 py-3 text-dark-400" /></div>
-                        <button onClick={save} disabled={saving} className="px-6 py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 rounded-xl text-white font-medium transition-colors">{saving ? 'جاري الحفظ...' : '💾 حفظ'}</button>
+                    <h3 className="text-xl md:text-2xl font-bold text-slate-800">الإعدادات</h3>
+                    <div className="glass-card rounded-2xl p-6 space-y-4">
+                        <h4 className="text-lg font-bold text-slate-800">الملف الشخصي</h4>
+                        <div><label className="block text-slate-600 text-sm font-medium mb-2">الاسم</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-800 focus:outline-none input-focus" /></div>
+                        <div><label className="block text-slate-600 text-sm font-medium mb-2">البريد</label><input type="email" value={user?.email || ''} disabled className="w-full bg-slate-100 border border-slate-200 rounded-xl px-5 py-4 text-slate-500" /></div>
+                        <button onClick={save} disabled={saving} className="px-8 py-3 btn-primary rounded-xl text-white font-bold ripple">{saving ? 'جاري الحفظ...' : '💾 حفظ التغييرات'}</button>
                     </div>
-                    <div className="glass-card rounded-2xl p-4 md:p-6">
-                        <h4 className="text-lg font-bold text-white mb-4">الاشتراك</h4>
-                        <div className="flex items-center gap-4 p-4 bg-dark-800 rounded-xl"><div className="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400 text-xl">⭐</div><div className="flex-1"><p className="text-white font-bold">{userData?.plan === 'pro' ? 'الخطة المدفوعة' : 'الخطة المجانية'}</p><p className="text-dark-400 text-sm">{userData?.plan === 'pro' ? 'جميع الميزات' : '3 منشورات شهريًا'}</p></div><button className="px-4 py-2 bg-brand-500 rounded-xl text-white text-sm">ترقية</button></div>
+                    <div className="glass-card rounded-2xl p-6">
+                        <h4 className="text-lg font-bold text-slate-800 mb-4">الاشتراك</h4>
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl"><div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 text-xl">⭐</div><div className="flex-1"><p className="text-slate-800 font-bold">{userData?.plan === 'pro' ? 'الخطة المدفوعة' : 'الخطة المجانية'}</p><p className="text-slate-500 text-sm">{userData?.plan === 'pro' ? 'جميع الميزات' : '3 منشورات شهريًا'}</p></div><button className="px-5 py-2 btn-primary rounded-xl text-white text-sm font-bold">ترقية - 199 جنيه/شهر</button></div>
                     </div>
                 </div>
             );
@@ -1308,7 +931,6 @@
         function App() {
             const [currentPage, setCurrentPage] = useState('landing');
             const navigate = (page) => { setCurrentPage(page); window.scrollTo(0, 0); };
-
             const renderPage = () => {
                 switch (currentPage) {
                     case 'landing': return <LandingPage onNavigate={navigate} />;
@@ -1324,11 +946,11 @@
         function DashboardLayout({ onNavigate }) {
             const [activePage, setActivePage] = useState('dashboard');
             const [sidebarOpen, setSidebarOpen] = useState(true);
-            const pages = { dashboard: DashboardPage, ai: AIContentPage, calendar: AdvancedCalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, media: MediaPage, team: TeamPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
+            const pages = { dashboard: DashboardPage, ai: AIContentPage, calendar: CalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, media: MediaPage, team: TeamPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
             const Page = pages[activePage] || DashboardPage;
             return (
-                <div className="flex min-h-screen bg-dark-950">
-                    <Sidebar activePage={activePage} setActivePage={setActivePage} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onNavigate={onNavigate} />
+                <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+                    <Sidebar activePage={activePage} setActivePage={setActivePage} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
                     <MobileNav activePage={activePage} setActivePage={setActivePage} />
                     <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
                         <Header activePage={activePage} onNavigate={onNavigate} />
@@ -1340,13 +962,11 @@
 
         function Root() {
             return (
-                <ThemeProvider>
-                    <ToastProvider>
-                        <AuthProvider>
-                            <App />
-                        </AuthProvider>
-                    </ToastProvider>
-                </ThemeProvider>
+                <ToastProvider>
+                    <AuthProvider>
+                        <App />
+                    </AuthProvider>
+                </ToastProvider>
             );
         }
 
