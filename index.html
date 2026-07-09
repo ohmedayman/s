@@ -10,10 +10,13 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { 'tajawal': ['Tajawal', 'sans-serif'] },
@@ -27,7 +30,7 @@
     </script>
     <style>
         * { font-family: 'Tajawal', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
         .gradient-brand { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); }
@@ -48,16 +51,22 @@
         .text-gradient { background: linear-gradient(135deg, #818cf8, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glow { box-shadow: 0 0 60px rgba(99, 102, 241, 0.4); }
         .hero-bg { background: radial-gradient(ellipse at top, rgba(99,102,241,0.15) 0%, transparent 60%); }
-        .float { animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .gradient-text { background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
         @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .spinner { border: 3px solid rgba(99, 102, 241, 0.2); border-top-color: #6366f1; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast { animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.7s forwards; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+        .modal-overlay { animation: fadeIn 0.2s ease-out; }
+        .modal-content { animation: scaleIn 0.2s ease-out; }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body class="bg-dark-950 text-white font-tajawal">
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect, useRef, createContext, useContext } = React;
+        const { useState, useEffect, useRef, createContext, useContext, useCallback } = React;
 
         // ==================== FIREBASE CONFIG ====================
         const firebaseConfig = {
@@ -72,87 +81,138 @@
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
         const analytics = firebase.analytics();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-        // ==================== AUTH CONTEXT ====================
+        // ==================== CONTEXTS ====================
         const AuthContext = createContext();
-        function useAuth() { return useContext(AuthContext); }
+        const ToastContext = createContext();
+        const ThemeContext = createContext();
 
+        function useAuth() { return useContext(AuthContext); }
+        function useToast() { return useContext(ToastContext); }
+        function useTheme() { return useContext(ThemeContext); }
+
+        // ==================== TOAST PROVIDER ====================
+        function ToastProvider({ children }) {
+            const [toasts, setToasts] = useState([]);
+            const addToast = (message, type = 'success') => {
+                const id = Date.now();
+                setToasts(prev => [...prev, { id, message, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+            };
+            return (
+                <ToastContext.Provider value={{ addToast }}>
+                    {children}
+                    <div className="fixed top-4 left-4 z-[100] space-y-2">
+                        {toasts.map(toast => (
+                            <div key={toast.id} className={`toast px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 ${toast.type === 'success' ? 'bg-emerald-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-brand-500'}`}>
+                                <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✕' : 'ℹ'}</span>
+                                <span className="text-white text-sm font-medium">{toast.message}</span>
+                            </div>
+                        ))}
+                    </div>
+                </ToastContext.Provider>
+            );
+        }
+
+        // ==================== THEME PROVIDER ====================
+        function ThemeProvider({ children }) {
+            const [darkMode, setDarkMode] = useState(true);
+            useEffect(() => { document.documentElement.classList.toggle('dark', darkMode); }, [darkMode]);
+            return <ThemeContext.Provider value={{ darkMode, setDarkMode }}>{children}</ThemeContext.Provider>;
+        }
+
+        // ==================== AUTH PROVIDER ====================
         function AuthProvider({ children }) {
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [userData, setUserData] = useState(null);
 
             useEffect(() => {
-                const unsubscribe = auth.onAuthStateChanged(user => {
+                const unsubscribe = auth.onAuthStateChanged(async (user) => {
                     setUser(user);
+                    if (user) {
+                        const doc = await db.collection('users').doc(user.uid).get();
+                        if (doc.exists) setUserData(doc.data());
+                        else {
+                            const newUserData = { name: user.displayName || 'مستخدم', email: user.email, plan: 'free', createdAt: new Date().toISOString() };
+                            await db.collection('users').doc(user.uid).set(newUserData);
+                            setUserData(newUserData);
+                        }
+                    } else { setUserData(null); }
                     setLoading(false);
                 });
                 return unsubscribe;
             }, []);
 
             const loginWithEmail = (email, password) => auth.signInWithEmailAndPassword(email, password);
-            const registerWithEmail = (email, password, name) => auth.createUserWithEmailAndPassword(email, password).then(res => res.user.updateProfile({ displayName: name }));
-            const loginWithGoogle = () => auth.signInWithPopup(googleProvider);
+            const registerWithEmail = async (email, password, name) => {
+                const res = await auth.createUserWithEmailAndPassword(email, password);
+                await res.user.updateProfile({ displayName: name });
+                await db.collection('users').doc(res.user.uid).set({ name, email, plan: 'free', createdAt: new Date().toISOString() });
+                return res;
+            };
+            const loginWithGoogle = async () => {
+                const res = await auth.signInWithPopup(googleProvider);
+                const doc = await db.collection('users').doc(res.user.uid).get();
+                if (!doc.exists) await db.collection('users').doc(res.user.uid).set({ name: res.user.displayName, email: res.user.email, plan: 'free', createdAt: new Date().toISOString() });
+                return res;
+            };
             const logout = () => auth.signOut();
             const resetPassword = (email) => auth.sendPasswordResetEmail(email);
+            const updateProfile = async (data) => { await db.collection('users').doc(user.uid).update(data); setUserData(prev => ({ ...prev, ...data })); };
 
-            const value = { user, loading, loginWithEmail, registerWithEmail, loginWithGoogle, logout, resetPassword };
+            const value = { user, userData, loading, loginWithEmail, registerWithEmail, loginWithGoogle, logout, resetPassword, updateProfile };
             return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
         }
 
-        // ==================== DATA ====================
-        const mockStats = [
-            { title: 'إجمالي المتابعين', value: '24,589', change: '+12.5%', icon: '👥', color: 'from-brand-500 to-brand-600' },
-            { title: 'معدل التفاعل', value: '4.8%', change: '+2.1%', icon: '💬', color: 'from-emerald-500 to-emerald-600' },
-            { title: 'الوصول اليومي', value: '12,340', change: '+8.3%', icon: '👁️', color: 'from-amber-500 to-amber-600' },
-            { title: 'الرسائل الجديدة', value: '47', change: '+15.2%', icon: '✉️', color: 'from-pink-500 to-pink-600' },
-        ];
+        // ==================== HELPER COMPONENTS ====================
+        function LoadingSpinner() {
+            return <div className="flex items-center justify-center py-20"><div className="spinner"></div></div>;
+        }
 
-        const weeklyData = [
-            { day: 'السبت', posts: 3, engagement: 4.2, reach: 8500 },
-            { day: 'الأحد', posts: 2, engagement: 3.8, reach: 7200 },
-            { day: 'الاثنين', posts: 4, engagement: 5.1, reach: 11000 },
-            { day: 'الثلاثاء', posts: 3, engagement: 4.5, reach: 9800 },
-            { day: 'الأربعاء', posts: 2, engagement: 3.9, reach: 7600 },
-            { day: 'الخميس', posts: 5, engagement: 6.2, reach: 14500 },
-            { day: 'الجمعة', posts: 1, engagement: 2.8, reach: 4200 },
-        ];
+        function Modal({ isOpen, onClose, title, children }) {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 modal-overlay" onClick={onClose}>
+                    <div className="glass-card rounded-2xl w-full max-w-md mx-4 modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between p-5 border-b border-dark-700">
+                            <h3 className="text-lg font-bold text-white">{title}</h3>
+                            <button onClick={onClose} className="w-8 h-8 rounded-full bg-dark-700 hover:bg-dark-600 flex items-center justify-center text-dark-300 transition-colors">✕</button>
+                        </div>
+                        <div className="p-5">{children}</div>
+                    </div>
+                </div>
+            );
+        }
 
-        const templates = [
-            { id: 1, name: 'عرض/خصم', description: 'قالب عروض وخصومات', category: 'عرض', color: 'from-red-500 to-pink-500', preview: '🔥 خصم 30%' },
-            { id: 2, name: 'منتج جديد', description: 'إطلاق منتج جديد', category: 'منتج', color: 'from-brand-500 to-purple-500', preview: '✨ وصلنا الجديد' },
-            { id: 3, name: 'اقتباس/نصيحة', description: 'نصيحة مفيدة', category: 'نصيحة', color: 'from-emerald-500 to-teal-500', preview: '💡 نصيحة اليوم' },
-            { id: 4, name: 'رأي عميل', description: 'تقييم عميل', category: 'رأي عميل', color: 'from-amber-500 to-orange-500', preview: '⭐ آراء عملائنا' },
-            { id: 5, name: 'خلف الكواليس', description: 'ما يحدث خلف الكواليس', category: 'خلف الكواليس', color: 'from-cyan-500 to-blue-500', preview: '🎬 من وراء الكواليس' },
-            { id: 6, name: 'عد تنازلي', description: 'عد تنازلي لعرض', category: 'عد تنازلي', color: 'from-rose-500 to-red-500', preview: '⏰ العد بدأ' },
-        ];
+        function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }) {
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title={title}>
+                    <p className="text-dark-300 mb-6">{message}</p>
+                    <div className="flex gap-3">
+                        <button onClick={onClose} className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white transition-colors">إلغاء</button>
+                        <button onClick={onConfirm} className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl text-white transition-colors">تأكيد الحذف</button>
+                    </div>
+                </Modal>
+            );
+        }
 
-        const messageTemplates = [
-            { id: 1, category: 'استفسار سعر', template: 'مرحبًا! 😊\nسعر المنتج هو [السعر] ريال\nمع شحن مجاني للطلبات فوق 200 ريال' },
-            { id: 2, category: 'شحن', template: 'مرحبًا! 📦\nالشحن خلال 3-5 أيام عمل داخل المملكة' },
-            { id: 3, category: 'شكوى', template: 'مرحبًا! نعتذر عن أي إزعاج 🙏\nنحب نحل المشكلة فورًا' },
-        ];
-
-        const pricingPlans = [
-            { id: 1, name: 'مجاني', price: '0', period: 'دائمًا', features: ['3 منشورات شهريًا', 'قالب واحد', 'كاتب كابشنات básico', 'دعم عبر البريد'], color: 'dark', popular: false },
-            { id: 2, name: 'برو', price: '49', period: 'شهريًا', features: ['منشورات غير محدودة', 'جميع القوالب', 'كاتب كابشنات AI', 'تحليل الأداء', 'دعم مباشر', 'إدارة الرسائل'], color: 'brand', popular: true },
-            { id: 3, name: 'entreprise', price: '149', period: 'شهريًا', features: ['كل ميزات برو', 'فريق عمل (5 أعضاء)', 'API доступ', 'تقارير مخصصة', 'مدير حساب مخصص', 'SLA 99.9%'], color: 'purple', popular: false },
-        ];
-
-        // ==================== LANDING PAGE COMPONENTS ====================
-
+        // ==================== LANDING PAGE ====================
         function Navbar({ onNavigate }) {
             const [scrolled, setScrolled] = useState(false);
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
             useEffect(() => {
                 const handleScroll = () => setScrolled(window.scrollY > 50);
                 window.addEventListener('scroll', handleScroll);
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
-
             return (
                 <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-dark-950/90 backdrop-blur-xl border-b border-dark-800' : ''}`}>
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold text-lg">S</div>
                             <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
@@ -162,11 +222,20 @@
                             <a href="#pricing" className="text-dark-300 hover:text-white transition-colors">الأسعار</a>
                             <a href="#testimonials" className="text-dark-300 hover:text-white transition-colors">الآراء</a>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="hidden md:flex items-center gap-3">
                             <button onClick={() => onNavigate('login')} className="px-4 py-2 text-dark-300 hover:text-white transition-colors">تسجيل الدخول</button>
                             <button onClick={() => onNavigate('register')} className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">ابدأ مجانًا</button>
                         </div>
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-dark-300">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+                        </button>
                     </div>
+                    {mobileMenuOpen && (
+                        <div className="md:hidden bg-dark-900 border-t border-dark-700 p-4 space-y-3">
+                            <button onClick={() => { onNavigate('login'); setMobileMenuOpen(false); }} className="block w-full text-right py-2 text-dark-300">تسجيل الدخول</button>
+                            <button onClick={() => { onNavigate('register'); setMobileMenuOpen(false); }} className="block w-full py-3 bg-brand-500 rounded-xl text-white font-medium text-center">ابدأ مجانًا</button>
+                        </div>
+                    )}
                 </nav>
             );
         }
@@ -178,15 +247,15 @@
                         <div className="absolute top-20 right-20 w-72 h-72 bg-brand-500/20 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-20 left-20 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
                     </div>
-                    <div className="max-w-7xl mx-auto px-6 py-32 text-center relative z-10">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-32 text-center relative z-10">
                         <div className="inline-block px-4 py-2 bg-brand-500/10 border border-brand-500/20 rounded-full text-brand-400 text-sm mb-6 fade-in-up">
                             🚀 المنصة الأولى لإدارة السوشيال ميديا
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight fade-in-up" style={{ animationDelay: '0.1s' }}>
+                        <h1 className="text-4xl md:text-7xl font-black text-white mb-6 leading-tight fade-in-up" style={{ animationDelay: '0.1s' }}>
                             أدر سوشيال ميديا<br />
                             <span className="gradient-text">بذكاء واحترافية</span>
                         </h1>
-                        <p className="text-xl text-dark-300 max-w-2xl mx-auto mb-10 fade-in-up" style={{ animationDelay: '0.2s' }}>
+                        <p className="text-lg md:text-xl text-dark-300 max-w-2xl mx-auto mb-10 fade-in-up" style={{ animationDelay: '0.2s' }}>
                             منصة متكاملة لإدارة حساباتك على جميع المنصات. اكتب محتوى أفضل، جدول منشوراتك، وحلل أداءك - كلها في مكان واحد.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up" style={{ animationDelay: '0.3s' }}>
@@ -194,10 +263,10 @@
                                 ابدأ مجانًا الآن
                             </button>
                             <button className="px-8 py-4 bg-dark-800 hover:bg-dark-700 rounded-2xl text-white font-medium text-lg transition-all flex items-center gap-2">
-                                <span>▶️</span> شاهد الفيديو التعريفي
+                                <span>▶️</span> شاهد الفيديو
                             </button>
                         </div>
-                        <div className="mt-16 flex items-center justify-center gap-8 text-dark-400 text-sm fade-in-up" style={{ animationDelay: '0.4s' }}>
+                        <div className="mt-16 flex flex-wrap items-center justify-center gap-4 md:gap-8 text-dark-400 text-sm fade-in-up" style={{ animationDelay: '0.4s' }}>
                             <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> بدون بطاقة ائتمان</div>
                             <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> إعداد في 2 دقيقة</div>
                             <div className="flex items-center gap-2"><span className="text-emerald-400">✓</span> إلغاء في أي وقت</div>
@@ -209,24 +278,22 @@
 
         function FeaturesSection() {
             const features = [
-                { icon: '📊', title: 'لوحة تحكم ذكية', description: 'نظرة شاملة على أداء حساباتك مع رسوم بيانية تفاعلية وإحصائيات مفصلة.' },
-                { icon: '📅', title: 'تقويم المحتوى', description: 'جدول منشوراتك مسبقًا مع سحب وإفلات وتنبيهات ذكية.' },
-                { icon: '✍️', title: 'كاتب الكابشنات AI', description: 'ولّد كابشنات احترافية بالذكاء الاصطناعي ب多种 نبرات صوت مختلفة.' },
-                { icon: '🎨', title: 'مكتبة القوالب', description: 'أكثر من 100 قالب جاهز للتعديل يناسب جميع أنواع المحتوى.' },
-                { icon: '#️⃣', title: 'بحث الهاشتاجات', description: 'ابحث عن أفضل الهاشتاجات الرائجة وتابع أداءها.' },
-                { icon: '📈', title: 'تحليل الأداء', description: 'تقارير مفصلة لأفضل أوقات النشر والمحتوى الأعلى تفاعلًا.' },
-                { icon: '💬', title: 'إدارة الرسائل', description: 'ردود جاهزة على الاستفسارات الشائعة مع ردود ذكية.' },
-                { icon: '🔄', title: 'إعادة استخدام المحتوى', description: 'حوّل منشور واحد إلى عدة صيغ مختلفة لكل المنصات.' },
-                { icon: '💰', title: 'حاسبة العائد', description: 'احسب عائد استثمارك في كل حملة تسويقية.' },
+                { icon: '📊', title: 'لوحة تحكم ذكية', description: 'نظرة شاملة على أداء حساباتك مع رسوم بيانية تفاعلية.' },
+                { icon: '📅', title: 'تقويم المحتوى', description: 'جدول منشوراتك مسبقًا مع سحب وإفلات.' },
+                { icon: '✍️', title: 'كاتب الكابشنات AI', description: 'ولّد كابشنات احترافية بالذكاء الاصطناعي.' },
+                { icon: '🎨', title: 'مكتبة القوالب', description: 'أكثر من 100 قالب جاهز للتعديل.' },
+                { icon: '#️⃣', title: 'بحث الهاشتاجات', description: 'ابحث عن أفضل الهاشتاجات الرائجة.' },
+                { icon: '📈', title: 'تحليل الأداء', description: 'تقارير مفصلة لأفضل أوقات النشر.' },
+                { icon: '💬', title: 'إدارة الرسائل', description: 'ردود جاهزة على الاستفسارات الشائعة.' },
+                { icon: '🔄', title: 'إعادة استخدام المحتوى', description: 'حوّل منشور واحد إلى عدة صيغ مختلفة.' },
+                { icon: '💰', title: 'حاسبة العائد', description: 'احسب عائد استثمارك في كل حملة.' },
             ];
-
             return (
-                <section id="features" className="py-32 relative">
-                    <div className="max-w-7xl mx-auto px-6">
+                <section id="features" className="py-20 md:py-32 relative">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6">
                         <div className="text-center mb-16">
                             <span className="text-brand-400 font-medium">الميزات</span>
-                            <h2 className="text-4xl md:text-5xl font-black text-white mt-3">كل ما تحتاجه في مكان واحد</h2>
-                            <p className="text-dark-300 mt-4 max-w-2xl mx-auto">أدوات متقدمة مصممة خصيصًا لمساعدتك على إدارة حساباتك بكفاءة عالية</p>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mt-3">كل ما تحتاجه في مكان واحد</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {features.map((f, i) => (
@@ -243,31 +310,26 @@
         }
 
         function PricingSection({ onNavigate }) {
+            const plans = [
+                { name: 'مجاني', price: '0', features: ['3 منشورات شهريًا', 'قالب واحد', 'كاتب كابشنات básico', 'دعم عبر البريد'], popular: false },
+                { name: 'برو', price: '49', features: ['منشورات غير محدودة', 'جميع القوالب', 'كاتب كابشنات AI', 'تحليل الأداء', 'دعم مباشر'], popular: true },
+                { name: 'Enterprise', price: '149', features: ['كل ميزات برو', 'فريق عمل (5 أعضاء)', 'API доступ', 'تقارير مخصصة', 'مدير حساب مخصص'], popular: false },
+            ];
             return (
-                <section id="pricing" className="py-32 relative">
-                    <div className="max-w-7xl mx-auto px-6">
+                <section id="pricing" className="py-20 md:py-32 relative">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6">
                         <div className="text-center mb-16">
                             <span className="text-brand-400 font-medium">الأسعار</span>
-                            <h2 className="text-4xl md:text-5xl font-black text-white mt-3">خطط تناسب الجميع</h2>
-                            <p className="text-dark-300 mt-4">ابدأ مجانًا وترقّي حسب احتياجك</p>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mt-3">خطط تناسب الجميع</h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                            {pricingPlans.map((plan, i) => (
-                                <div key={plan.id} className={`rounded-2xl p-8 transition-all hover-lift ${plan.popular ? 'bg-gradient-to-b from-brand-500/20 to-brand-600/10 border-2 border-brand-500 relative' : 'glass-card'}`}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+                            {plans.map((plan, i) => (
+                                <div key={i} className={`rounded-2xl p-6 md:p-8 transition-all hover-lift ${plan.popular ? 'bg-gradient-to-b from-brand-500/20 to-brand-600/10 border-2 border-brand-500 relative' : 'glass-card'}`}>
                                     {plan.popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand-500 rounded-full text-white text-sm font-medium">الأكثر شعبية</div>}
                                     <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                                    <div className="flex items-baseline gap-1 mb-6">
-                                        <span className="text-4xl font-black text-white">${plan.price}</span>
-                                        <span className="text-dark-400">/ {plan.period}</span>
-                                    </div>
-                                    <ul className="space-y-3 mb-8">
-                                        {plan.features.map((f, j) => (
-                                            <li key={j} className="flex items-center gap-2 text-dark-300 text-sm"><span className="text-emerald-400">✓</span>{f}</li>
-                                        ))}
-                                    </ul>
-                                    <button onClick={() => onNavigate('register')} className={`w-full py-3 rounded-xl font-medium transition-all ${plan.popular ? 'bg-brand-500 hover:bg-brand-600 text-white' : 'bg-dark-700 hover:bg-dark-600 text-white'}`}>
-                                        ابدأ الآن
-                                    </button>
+                                    <div className="flex items-baseline gap-1 mb-6"><span className="text-4xl font-black text-white">${plan.price}</span><span className="text-dark-400">/شهريًا</span></div>
+                                    <ul className="space-y-3 mb-8">{plan.features.map((f, j) => <li key={j} className="flex items-center gap-2 text-dark-300 text-sm"><span className="text-emerald-400">✓</span>{f}</li>)}</ul>
+                                    <button onClick={() => onNavigate('register')} className={`w-full py-3 rounded-xl font-medium transition-all ${plan.popular ? 'bg-brand-500 hover:bg-brand-600 text-white' : 'bg-dark-700 hover:bg-dark-600 text-white'}`}>ابدأ الآن</button>
                                 </div>
                             ))}
                         </div>
@@ -278,27 +340,20 @@
 
         function TestimonialsSection() {
             const testimonials = [
-                { name: 'سارة أحمد', role: 'صاحبة متجر إلكتروني', avatar: 'س', text: 'سوشيال فاست غيّر طريقة عملي بالكامل! أصبحت أ Publish محتوى بانتظام وتفاعل متابعيني زاد 300%.', rating: 5 },
-                { name: 'خالد محمد', role: 'مدير تسويق', avatar: 'خ', text: 'أفضل أداة لإدارة حسابات العملاء. tiếtّف الوقت و improves النتائج بشكل ملحوظ.', rating: 5 },
-                { name: 'نورة سعيد', role: 'مؤثرة ومدونة', avatar: 'ن', text: 'كاتب الكابشنات بالذكاء الاصطناعي وسّلني_hours من الكتابة. أنصح فيه كل من يدير حسابات.', rating: 5 },
+                { name: 'سارة أحمد', role: 'صاحبة متجر', text: 'سوشيال فاست غيّر طريقة عملي بالكامل! تفاعل متابعيني زاد 300%.', rating: 5 },
+                { name: 'خالد محمد', role: 'مدير تسويق', text: 'أفضل أداة لإدارة حسابات العملاء. tiếtّف الوقت و improves النتائج.', rating: 5 },
+                { name: 'نورة سعيد', role: 'مؤثرة', text: 'كاتب الكابشنات وسّلني hours من الكتابة. أنصح فيه الجميع.', rating: 5 },
             ];
-
             return (
-                <section id="testimonials" className="py-32 relative">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="text-center mb-16">
-                            <span className="text-brand-400 font-medium">الآراء</span>
-                            <h2 className="text-4xl md:text-5xl font-black text-white mt-3">ماذا يقول عملاؤنا</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <section id="testimonials" className="py-20 md:py-32 relative">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6">
+                        <div className="text-center mb-16"><span className="text-brand-400 font-medium">الآراء</span><h2 className="text-3xl md:text-5xl font-black text-white mt-3">ماذا يقول عملاؤنا</h2></div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {testimonials.map((t, i) => (
                                 <div key={i} className="glass-card rounded-2xl p-6 hover-lift fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
                                     <div className="flex gap-1 mb-4">{Array(5).fill(0).map((_, j) => <span key={j} className="text-amber-400">⭐</span>)}</div>
                                     <p className="text-dark-200 text-sm leading-relaxed mb-6">"{t.text}"</p>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">{t.avatar}</div>
-                                        <div><p className="text-white font-bold">{t.name}</p><p className="text-dark-400 text-sm">{t.role}</p></div>
-                                    </div>
+                                    <div className="flex items-center gap-3"><div className="w-12 h-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">{t.name.charAt(0)}</div><div><p className="text-white font-bold">{t.name}</p><p className="text-dark-400 text-sm">{t.role}</p></div></div>
                                 </div>
                             ))}
                         </div>
@@ -309,16 +364,14 @@
 
         function CTASection({ onNavigate }) {
             return (
-                <section className="py-32 relative">
-                    <div className="max-w-4xl mx-auto px-6 text-center">
-                        <div className="glass-card rounded-3xl p-12 relative overflow-hidden">
+                <section className="py-20 md:py-32 relative">
+                    <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
+                        <div className="glass-card rounded-3xl p-8 md:p-12 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 to-pink-500/10"></div>
                             <div className="relative z-10">
-                                <h2 className="text-4xl font-black text-white mb-4">جاهز لتطوير سوشيال ميديا؟</h2>
-                                <p className="text-dark-300 mb-8 max-w-xl mx-auto">انضم لآلاف المسوقين الذين يستخدمون سوشيال فاست لإدارة حساباتهم بكفاءة</p>
-                                <button onClick={() => onNavigate('register')} className="px-10 py-4 bg-brand-500 hover:bg-brand-600 rounded-2xl text-white font-bold text-lg transition-all hover:scale-105 glow">
-                                    ابدأ مجانًا الآن
-                                </button>
+                                <h2 className="text-3xl md:text-4xl font-black text-white mb-4">جاهز لتطوير سوشيال ميديا؟</h2>
+                                <p className="text-dark-300 mb-8 max-w-xl mx-auto">انضم لآلاف المسوقين الذين يستخدمون سوشيال فاست</p>
+                                <button onClick={() => onNavigate('register')} className="px-10 py-4 bg-brand-500 hover:bg-brand-600 rounded-2xl text-white font-bold text-lg transition-all hover:scale-105 glow">ابدأ مجانًا الآن</button>
                             </div>
                         </div>
                     </div>
@@ -329,19 +382,17 @@
         function Footer() {
             return (
                 <footer className="border-t border-dark-800 py-12">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                            <div>
-                                <div className="flex items-center gap-3 mb-4"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div><span className="text-xl font-bold text-gradient">سوشيال فاست</span></div>
-                                <p className="text-dark-400 text-sm">المنصة الأولى لإدارة السوشيال ميديا في العالم العربي</p>
+                    <div className="max-w-7xl mx-auto px-4 md:px-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                            <div className="col-span-2 md:col-span-1">
+                                <div className="flex items-center gap-3 mb-4"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div><span className="text-lg font-bold text-gradient">سوشيال فاست</span></div>
+                                <p className="text-dark-400 text-sm">المنصة الأولى لإدارة السوشيال ميديا</p>
                             </div>
-                            <div><h4 className="text-white font-bold mb-4">المنتج</h4><ul className="space-y-2 text-dark-400 text-sm"><li>الميزات</li><li>الأسعار</li><li>التكاملات</li><li>واجهة API</li></ul></div>
-                            <div><h4 className="text-white font-bold mb-4">الشركة</h4><ul className="space-y-2 text-dark-400 text-sm"><li>من نحن</li><li>المدونة</li><li>الوظائف</li><li>تواصل معنا</li></ul></div>
-                            <div><h4 className="text-white font-bold mb-4">الدعم</h4><ul className="space-y-2 text-dark-400 text-sm"><li>مركز المساعدة</li><li>الشروط والأحكام</li><li>سياسة الخصوصية</li><li>الأسئلة الشائعة</li></ul></div>
+                            <div><h4 className="text-white font-bold mb-4">المنتج</h4><ul className="space-y-2 text-dark-400 text-sm"><li>الميزات</li><li>الأسعار</li><li>API</li></ul></div>
+                            <div><h4 className="text-white font-bold mb-4">الشركة</h4><ul className="space-y-2 text-dark-400 text-sm"><li>من نحن</li><li>المدونة</li><li>تواصل معنا</li></ul></div>
+                            <div><h4 className="text-white font-bold mb-4">الدعم</h4><ul className="space-y-2 text-dark-400 text-sm"><li>مركز المساعدة</li><li>الشروط</li><li>الخصوصية</li></ul></div>
                         </div>
-                        <div className="border-t border-dark-800 mt-12 pt-8 text-center text-dark-400 text-sm">
-                            © 2026 سوشيال فاست. جميع الحقوق محفوظة.
-                        </div>
+                        <div className="border-t border-dark-800 mt-12 pt-8 text-center text-dark-400 text-sm">© 2026 سوشيال فاست. جميع الحقوق محفوظة.</div>
                     </div>
                 </footer>
             );
@@ -362,54 +413,37 @@
         }
 
         // ==================== AUTH PAGES ====================
-
         function LoginPage({ onNavigate }) {
             const { loginWithEmail, loginWithGoogle, resetPassword } = useAuth();
+            const { addToast } = useToast();
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
             const [error, setError] = useState('');
             const [loading, setLoading] = useState(false);
             const [showReset, setShowReset] = useState(false);
             const [resetEmail, setResetEmail] = useState('');
-            const [resetSent, setResetSent] = useState(false);
 
             const handleLogin = async (e) => {
-                e.preventDefault();
-                setError('');
-                setLoading(true);
-                try {
-                    await loginWithEmail(email, password);
-                    onNavigate('dashboard');
-                } catch (err) {
-                    setError(err.message.includes('user-not-found') ? 'البريد الإلكتروني غير مسجل' : err.message.includes('wrong-password') ? 'كلمة المرور غير صحيحة' : 'حدث خطأ، حاول مرة أخرى');
-                }
+                e.preventDefault(); setError(''); setLoading(true);
+                try { await loginWithEmail(email, password); addToast('تم تسجيل الدخول بنجاح!'); onNavigate('dashboard'); }
+                catch (err) { setError(err.message.includes('user-not-found') ? 'البريد غير مسجل' : err.message.includes('wrong-password') ? 'كلمة المرور خاطئة' : 'حدث خطأ'); }
                 setLoading(false);
             };
 
-            const handleGoogleLogin = async () => {
-                try {
-                    await loginWithGoogle();
-                    onNavigate('dashboard');
-                } catch (err) {
-                    setError('فشل تسجيل الدخول بـ Google');
-                }
+            const handleGoogle = async () => {
+                try { await loginWithGoogle(); addToast('مرحبًا! تم تسجيل الدخول'); onNavigate('dashboard'); }
+                catch (err) { setError('فشل تسجيل الدخول بـ Google'); }
             };
 
             const handleReset = async (e) => {
                 e.preventDefault();
-                try {
-                    await resetPassword(resetEmail);
-                    setResetSent(true);
-                } catch (err) {
-                    setError('البريد الإلكتروني غير مسجل');
-                }
+                try { await resetPassword(resetEmail); addToast('تم إرسال رابط إعادة التعيين', 'info'); setShowReset(false); }
+                catch (err) { setError('البريد غير مسجل'); }
             };
 
             return (
-                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-6 relative overflow-hidden">
+                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
-                    
                     <div className="w-full max-w-md relative z-10">
                         <div className="text-center mb-8">
                             <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6">
@@ -419,63 +453,34 @@
                             <h1 className="text-3xl font-black text-white">مرحبًا بعودتك!</h1>
                             <p className="text-dark-400 mt-2">سجّل دخولك لإدارة حساباتك</p>
                         </div>
-
-                        <div className="glass-card rounded-2xl p-8">
+                        <div className="glass-card rounded-2xl p-6 md:p-8">
                             {showReset ? (
                                 <div>
-                                    <button onClick={() => setShowReset(false)} className="text-brand-400 text-sm mb-4 flex items-center gap-1">→ العودة لتسجيل الدخول</button>
+                                    <button onClick={() => setShowReset(false)} className="text-brand-400 text-sm mb-4">→ العودة</button>
                                     <h2 className="text-xl font-bold text-white mb-4">إعادة تعيين كلمة المرور</h2>
-                                    {resetSent ? (
-                                        <div className="text-center py-4">
-                                            <div className="text-4xl mb-4">📧</div>
-                                            <p className="text-emerald-400">تم إرسال رابط إعادة التعيين على بريدك</p>
-                                        </div>
-                                    ) : (
-                                        <form onSubmit={handleReset}>
-                                            <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 mb-4" placeholder="بريدك الإلكتروني" required />
-                                            <button type="submit" className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">إرسال الرابط</button>
-                                        </form>
-                                    )}
+                                    <form onSubmit={handleReset}>
+                                        <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 mb-4" placeholder="بريدك الإلكتروني" required />
+                                        <button type="submit" className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">إرسال الرابط</button>
+                                    </form>
                                 </div>
                             ) : (
                                 <div>
                                     {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">{error}</div>}
-                                    
-                                    <button onClick={handleGoogleLogin} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
+                                    <button onClick={handleGoogle} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
                                         <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                         الدخول بـ Google
                                     </button>
-
-                                    <div className="flex items-center gap-4 my-6">
-                                        <div className="flex-1 h-px bg-dark-700"></div>
-                                        <span className="text-dark-400 text-sm">أو</span>
-                                        <div className="flex-1 h-px bg-dark-700"></div>
-                                    </div>
-
+                                    <div className="flex items-center gap-4 my-6"><div className="flex-1 h-px bg-dark-700"></div><span className="text-dark-400 text-sm">أو</span><div className="flex-1 h-px bg-dark-700"></div></div>
                                     <form onSubmit={handleLogin} className="space-y-4">
-                                        <div>
-                                            <label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label>
-                                            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors" placeholder="example@email.com" required />
-                                        </div>
-                                        <div>
-                                            <label className="block text-dark-300 text-sm mb-2">كلمة المرور</label>
-                                            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 transition-colors" placeholder="••••••••" required />
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="flex items-center gap-2 text-dark-300 text-sm"><input type="checkbox" className="rounded border-dark-600 bg-dark-800" />تذكرني</label>
-                                            <button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-brand-400 text-sm hover:underline">نسيت كلمة المرور؟</button>
-                                        </div>
-                                        <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors">
-                                            {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-                                        </button>
+                                        <div><label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="example@email.com" required /></div>
+                                        <div><label className="block text-dark-300 text-sm mb-2">كلمة المرور</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="••••••••" required /></div>
+                                        <div className="flex items-center justify-between"><label className="flex items-center gap-2 text-dark-300 text-sm"><input type="checkbox" className="rounded border-dark-600 bg-dark-800" />تذكرني</label><button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-brand-400 text-sm hover:underline">نسيت كلمة المرور؟</button></div>
+                                        <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors">{loading ? <div className="spinner mx-auto" style={{width:'20px',height:'20px',borderWidth:'2px'}}></div> : 'تسجيل الدخول'}</button>
                                     </form>
                                 </div>
                             )}
                         </div>
-
-                        <p className="text-center text-dark-400 mt-6">
-                            ليس لديك حساب؟ <button onClick={() => onNavigate('register')} className="text-brand-400 hover:underline font-medium">سجّل الآن مجانًا</button>
-                        </p>
+                        <p className="text-center text-dark-400 mt-6">ليس لديك حساب؟ <button onClick={() => onNavigate('register')} className="text-brand-400 hover:underline font-medium">سجّل الآن</button></p>
                     </div>
                 </div>
             );
@@ -483,6 +488,7 @@
 
         function RegisterPage({ onNavigate }) {
             const { registerWithEmail, loginWithGoogle } = useAuth();
+            const { addToast } = useToast();
             const [name, setName] = useState('');
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
@@ -491,251 +497,203 @@
             const [loading, setLoading] = useState(false);
 
             const handleRegister = async (e) => {
-                e.preventDefault();
-                setError('');
+                e.preventDefault(); setError('');
                 if (password !== confirmPassword) { setError('كلمتا المرور غير متطابقتين'); return; }
-                if (password.length < 6) { setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+                if (password.length < 6) { setError('كلمة المرور 6 أحرف على الأقل'); return; }
                 setLoading(true);
-                try {
-                    await registerWithEmail(email, password, name);
-                    onNavigate('dashboard');
-                } catch (err) {
-                    setError(err.message.includes('email-already-in-use') ? 'البريد الإلكتروني مسجل بالفعل' : 'حدث خطأ، حاول مرة أخرى');
-                }
+                try { await registerWithEmail(email, password, name); addToast('تم إنشاء الحساب بنجاح!'); onNavigate('dashboard'); }
+                catch (err) { setError(err.message.includes('email-already-in-use') ? 'البريد مسجل بالفعل' : 'حدث خطأ'); }
                 setLoading(false);
             };
 
-            const handleGoogleLogin = async () => {
-                try { await loginWithGoogle(); onNavigate('dashboard'); } catch (err) { setError('فشل التسجيل بـ Google'); }
+            const handleGoogle = async () => {
+                try { await loginWithGoogle(); addToast('مرحبًا!'); onNavigate('dashboard'); }
+                catch (err) { setError('فشل التسجيل بـ Google'); }
             };
 
             return (
-                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-6 relative overflow-hidden">
+                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative overflow-hidden">
                     <div className="absolute top-20 left-20 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
-                    
                     <div className="w-full max-w-md relative z-10">
                         <div className="text-center mb-8">
-                            <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div>
-                                <span className="text-xl font-bold text-gradient">سوشيال فاست</span>
-                            </button>
+                            <button onClick={() => onNavigate('landing')} className="inline-flex items-center gap-3 mb-6"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold">S</div><span className="text-xl font-bold text-gradient">سوشيال فاست</span></button>
                             <h1 className="text-3xl font-black text-white">أنشئ حسابك مجانًا</h1>
-                            <p className="text-dark-400 mt-2">ابدأ إدارة سوشيال ميديا في دقائق</p>
                         </div>
-
-                        <div className="glass-card rounded-2xl p-8">
+                        <div className="glass-card rounded-2xl p-6 md:p-8">
                             {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">{error}</div>}
-                            
-                            <button onClick={handleGoogleLogin} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
+                            <button onClick={handleGoogle} className="w-full py-3 bg-dark-700 hover:bg-dark-600 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-3 mb-4">
                                 <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                 التسجيل بـ Google
                             </button>
-
-                            <div className="flex items-center gap-4 my-6">
-                                <div className="flex-1 h-px bg-dark-700"></div>
-                                <span className="text-dark-400 text-sm">أو</span>
-                                <div className="flex-1 h-px bg-dark-700"></div>
-                            </div>
-
+                            <div className="flex items-center gap-4 my-6"><div className="flex-1 h-px bg-dark-700"></div><span className="text-dark-400 text-sm">أو</span><div className="flex-1 h-px bg-dark-700"></div></div>
                             <form onSubmit={handleRegister} className="space-y-4">
-                                <div>
-                                    <label className="block text-dark-300 text-sm mb-2">الاسم الكامل</label>
-                                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="محمد أحمد" required />
-                                </div>
-                                <div>
-                                    <label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label>
-                                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="example@email.com" required />
-                                </div>
-                                <div>
-                                    <label className="block text-dark-300 text-sm mb-2">كلمة المرور</label>
-                                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="6 أحرف على الأقل" required />
-                                </div>
-                                <div>
-                                    <label className="block text-dark-300 text-sm mb-2">تأكيد كلمة المرور</label>
-                                    <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="أعد إدخال كلمة المرور" required />
-                                </div>
-                                <label className="flex items-start gap-2 text-dark-300 text-sm">
-                                    <input type="checkbox" className="mt-1 rounded border-dark-600 bg-dark-800" required />
-                                    <span>أوافق على <a href="#" className="text-brand-400 hover:underline">الشروط والأحكام</a> و <a href="#" className="text-brand-400 hover:underline">سياسة الخصوصية</a></span>
-                                </label>
-                                <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors">
-                                    {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب مجاني'}
-                                </button>
+                                <div><label className="block text-dark-300 text-sm mb-2">الاسم</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
+                                <div><label className="block text-dark-300 text-sm mb-2">البريد</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
+                                <div><label className="block text-dark-300 text-sm mb-2">كلمة المرور</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
+                                <div><label className="block text-dark-300 text-sm mb-2">تأكيد كلمة المرور</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" required /></div>
+                                <label className="flex items-start gap-2 text-dark-300 text-sm"><input type="checkbox" className="mt-1 rounded border-dark-600 bg-dark-800" required /><span>أوافق على <a href="#" className="text-brand-400">الشروط</a></span></label>
+                                <button type="submit" disabled={loading} className="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 rounded-xl text-white font-medium transition-colors">{loading ? <div className="spinner mx-auto" style={{width:'20px',height:'20px',borderWidth:'2px'}}></div> : 'إنشاء حساب'}</button>
                             </form>
                         </div>
-
-                        <p className="text-center text-dark-400 mt-6">
-                            لديك حساب بالفعل؟ <button onClick={() => onNavigate('login')} className="text-brand-400 hover:underline font-medium">سجّل دخولك</button>
-                        </p>
+                        <p className="text-center text-dark-400 mt-6">لديك حساب؟ <button onClick={() => onNavigate('login')} className="text-brand-400 hover:underline">سجّل دخولك</button></p>
                     </div>
                 </div>
             );
         }
 
-        // ==================== DASHBOARD COMPONENTS ====================
-
-        function Sidebar({ activePage, setActivePage, isOpen, setIsOpen }) {
+        // ==================== DASHBOARD ====================
+        function Sidebar({ activePage, setActivePage, isOpen, setIsOpen, onNavigate }) {
+            const { user } = useAuth();
             const menuItems = [
                 { id: 'dashboard', name: 'لوحة التحكم', icon: '📊' },
                 { id: 'calendar', name: 'التقويم', icon: '📅' },
                 { id: 'templates', name: 'القوالب', icon: '🎨' },
                 { id: 'captions', name: 'الكابشنات', icon: '✍️' },
                 { id: 'hashtags', name: 'الهاشتاجات', icon: '#️⃣' },
+                { id: 'media', name: 'الوسائط', icon: '🖼️' },
                 { id: 'messages', name: 'الرسائل', icon: '💬' },
                 { id: 'analytics', name: 'التحليل', icon: '📈' },
                 { id: 'settings', name: 'الإعدادات', icon: '⚙️' },
             ];
-
             return (
-                <aside className={`fixed right-0 top-0 h-full bg-dark-900 border-l border-dark-700 transition-all duration-300 z-50 ${isOpen ? 'w-64' : 'w-20'} flex flex-col`}>
-                    <div className="p-4 border-b border-dark-700">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold text-lg flex-shrink-0">S</div>
-                            {isOpen && <div className="slide-in"><h1 className="text-lg font-bold text-gradient">سوشيال فاست</h1></div>}
-                        </div>
-                    </div>
-                    <nav className="flex-1 py-4 overflow-y-auto">
-                        {menuItems.map(item => (
-                            <button key={item.id} onClick={() => setActivePage(item.id)} className={`sidebar-item w-full flex items-center gap-3 px-4 py-3 text-right ${activePage === item.id ? 'active bg-brand-500/10 text-brand-400' : 'text-dark-300 hover:text-white'}`}>
-                                <span className="text-xl flex-shrink-0">{item.icon}</span>
-                                {isOpen && <span className="text-sm font-medium">{item.name}</span>}
-                            </button>
-                        ))}
-                    </nav>
-                    <button onClick={() => setIsOpen(!isOpen)} className="p-4 border-t border-dark-700 hover:bg-dark-800 transition-colors">
-                        <span className="text-xl">{isOpen ? '→' : '←'}</span>
-                    </button>
+                <aside className={`fixed right-0 top-0 h-full bg-dark-900 border-l border-dark-700 transition-all duration-300 z-50 ${isOpen ? 'w-64' : 'w-20'} hidden md:flex flex-col`}>
+                    <div className="p-4 border-b border-dark-700"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white font-bold flex-shrink-0">S</div>{isOpen && <span className="text-lg font-bold text-gradient">سوشيال فاست</span>}</div></div>
+                    <nav className="flex-1 py-4 overflow-y-auto">{menuItems.map(item => <button key={item.id} onClick={() => setActivePage(item.id)} className={`sidebar-item w-full flex items-center gap-3 px-4 py-3 ${activePage === item.id ? 'active bg-brand-500/10 text-brand-400' : 'text-dark-300 hover:text-white'}`}><span className="text-xl flex-shrink-0">{item.icon}</span>{isOpen && <span className="text-sm font-medium">{item.name}</span>}</button>)}</nav>
+                    <button onClick={() => setIsOpen(!isOpen)} className="p-4 border-t border-dark-700 hover:bg-dark-800"><span className="text-xl">{isOpen ? '→' : '←'}</span></button>
                 </aside>
+            );
+        }
+
+        function MobileNav({ activePage, setActivePage }) {
+            const items = [
+                { id: 'dashboard', icon: '📊' },
+                { id: 'calendar', icon: '📅' },
+                { id: 'captions', icon: '✍️' },
+                { id: 'analytics', icon: '📈' },
+                { id: 'settings', icon: '⚙️' },
+            ];
+            return (
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-700 z-50">
+                    <div className="flex items-center justify-around py-2">{items.map(item => <button key={item.id} onClick={() => setActivePage(item.id)} className={`p-3 rounded-xl ${activePage === item.id ? 'bg-brand-500/20 text-brand-400' : 'text-dark-400'}`}><span className="text-xl">{item.icon}</span></button>)}</div>
+                </div>
             );
         }
 
         function Header({ activePage, onNavigate }) {
             const { user, logout } = useAuth();
-            const pageNames = { dashboard:'لوحة التحكم', calendar:'التقويم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
-            
-            const handleLogout = async () => { await logout(); onNavigate('landing'); };
-
+            const { addToast } = useToast();
+            const pageNames = { dashboard:'لوحة التحكم', calendar:'التقويم', templates:'القوالب', captions:'الكابشنات', hashtags:'الهاشتاجات', media:'الوسائط', messages:'الرسائل', analytics:'التحليل', settings:'الإعدادات' };
+            const handleLogout = async () => { await logout(); addToast('تم تسجيل الخروج'); onNavigate('landing'); };
             return (
-                <header className="h-16 bg-dark-900/80 backdrop-blur-xl border-b border-dark-700 flex items-center justify-between px-6 sticky top-0 z-40">
-                    <h2 className="text-xl font-bold text-white">{pageNames[activePage]}</h2>
-                    <div className="flex items-center gap-4">
-                        <button className="relative p-2 hover:bg-dark-800 rounded-xl transition-colors">
-                            <span className="text-xl">🔔</span>
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full pulse-dot"></span>
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <div className="text-left hidden md:block">
-                                <p className="text-sm font-medium text-white">{user?.displayName || 'مستخدم'}</p>
-                                <p className="text-xs text-dark-400">{user?.email}</p>
-                            </div>
-                            <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-sm">{user?.displayName?.charAt(0) || 'م'}</div>
-                            <button onClick={handleLogout} className="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-dark-300 text-sm transition-colors">خروج</button>
-                        </div>
+                <header className="h-16 bg-dark-900/80 backdrop-blur-xl border-b border-dark-700 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+                    <h2 className="text-lg md:text-xl font-bold text-white">{pageNames[activePage]}</h2>
+                    <div className="flex items-center gap-3">
+                        <button className="relative p-2 hover:bg-dark-800 rounded-xl"><span className="text-xl">🔔</span><span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full pulse-dot"></span></button>
+                        <div className="hidden md:flex items-center gap-3"><div className="text-left"><p className="text-sm font-medium text-white">{user?.displayName || 'مستخدم'}</p><p className="text-xs text-dark-400">{user?.email}</p></div></div>
+                        <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-sm">{user?.displayName?.charAt(0) || 'م'}</div>
+                        <button onClick={handleLogout} className="hidden md:block px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-dark-300 text-sm">خروج</button>
                     </div>
                 </header>
             );
         }
 
-        function StatCard({ stat, index }) {
-            return (
-                <div className="glass-card rounded-2xl p-5 hover-lift fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div className="flex items-start justify-between">
-                        <div><p className="text-dark-400 text-sm mb-1">{stat.title}</p><p className="text-2xl font-bold text-white">{stat.value}</p><span className="text-emerald-400 text-xs font-medium">{stat.change}</span></div>
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-2xl`}>{stat.icon}</div>
-                    </div>
-                </div>
-            );
-        }
-
-        function BarChart({ data }) {
-            const maxVal = Math.max(...data.map(d => d.reach));
-            return (
-                <div className="flex items-end gap-2 h-48 mt-4">
-                    {data.map((item, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                            <div className="w-full rounded-t-lg bg-gradient-to-t from-brand-600 to-brand-400 transition-all duration-500 hover:from-pink-600 hover:to-pink-400" style={{ height: `${(item.reach / maxVal) * 100}%` }}></div>
-                            <span className="text-xs text-dark-400">{item.day}</span>
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-
-        function LineChart({ data }) {
-            const maxVal = Math.max(...data.map(d => d.engagement));
-            const points = data.map((item, i) => `${(i / (data.length - 1)) * 100},${100 - (item.engagement / maxVal) * 80}`).join(' ');
-            return (
-                <div className="h-32 mt-4">
-                    <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
-                        <defs><linearGradient id="lg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#6366f1" stopOpacity="0.3"/><stop offset="100%" stopColor="#6366f1" stopOpacity="0"/></linearGradient></defs>
-                        <polygon points={`0,100 ${points} 100,100`} fill="url(#lg)"/>
-                        <polyline points={points} fill="none" stroke="#6366f1" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        {data.map((item, i) => <circle key={i} cx={(i / (data.length - 1)) * 100} cy={100 - (item.engagement / maxVal) * 80} r="1" fill="#818cf8"/>)}
-                    </svg>
-                </div>
-            );
-        }
-
         // ==================== DASHBOARD PAGES ====================
-
         function DashboardPage() {
-            const [recentPosts] = useState([
-                { id: 1, title: 'عرض الصيف - خصم 30%', platform: 'إنستغرام', status: 'منشور', engagement: '5.2%', time: '2 ساعة' },
-                { id: 2, title: 'منتج جديد - سماعات', platform: 'تيك توك', status: 'منشور', engagement: '7.1%', time: '5 ساعة' },
-                { id: 3, title: 'نصيحة التسوق', platform: 'فيسبوك', status: 'جاهز', engagement: '-', time: '-' },
-            ]);
+            const { user } = useAuth();
+            const [posts, setPosts] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const unsubscribe = db.collection('posts').where('userId', '==', user?.uid).orderBy('createdAt', 'desc').limit(5).onSnapshot(snapshot => {
+                    setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                    setLoading(false);
+                });
+                return unsubscribe;
+            }, [user]);
+
+            const stats = [
+                { title: 'إجمالي المنشورات', value: posts.length, icon: '📝', color: 'from-brand-500 to-brand-600' },
+                { title: 'المنشورات المنشورة', value: posts.filter(p => p.status === 'published').length, icon: '✅', color: 'from-emerald-500 to-emerald-600' },
+                { title: 'مسودات', value: posts.filter(p => p.status === 'draft').length, icon: '📝', color: 'from-amber-500 to-amber-600' },
+                { title: 'مجدولة', value: posts.filter(p => p.status === 'scheduled').length, icon: '📅', color: 'from-pink-500 to-pink-600' },
+            ];
+
             return (
-                <div className="space-y-6 fade-in">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">{mockStats.map((stat, i) => <StatCard key={i} stat={stat} index={i} />)}</div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="glass-card rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-white">الوصول الأسبوعي</h3></div><BarChart data={weeklyData} /></div>
-                        <div className="glass-card rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-white">معدل التفاعل</h3></div><LineChart data={weeklyData} /></div>
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="bg-gradient-to-r from-brand-500/20 to-pink-500/20 rounded-2xl p-6 border border-brand-500/20">
+                        <h2 className="text-xl md:text-2xl font-bold text-white">مرحبًا {user?.displayName || 'بكم'}! 👋</h2>
+                        <p className="text-dark-300 mt-1">إليك نظرة سريعة على حسابك اليوم</p>
                     </div>
-                    <div className="glass-card rounded-2xl p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{stats.map((s, i) => <div key={i} className="glass-card rounded-2xl p-4 md:p-5 hover-lift"><div className="flex items-start justify-between"><div><p className="text-dark-400 text-xs md:text-sm mb-1">{s.title}</p><p className="text-xl md:text-2xl font-bold text-white">{s.value}</p></div><div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-xl md:text-2xl`}>{s.icon}</div></div></div>)}</div>
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
                         <h3 className="text-lg font-bold text-white mb-4">آخر المنشورات</h3>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead><tr className="text-dark-400 text-sm border-b border-dark-700"><th className="text-right pb-3">المنشور</th><th className="text-right pb-3">المنصة</th><th className="text-right pb-3">الحالة</th><th className="text-right pb-3">التفاعل</th></tr></thead>
-                                <tbody>{recentPosts.map(p => (
-                                    <tr key={p.id} className="border-b border-dark-800 hover:bg-dark-800/50">
-                                        <td className="py-4 text-white font-medium">{p.title}</td>
-                                        <td className="py-4"><span className="px-3 py-1 rounded-full text-xs bg-brand-500/20 text-brand-400">{p.platform}</span></td>
-                                        <td className="py-4"><span className={`px-3 py-1 rounded-full text-xs ${p.status === 'منشور' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{p.status}</span></td>
-                                        <td className="py-4 text-dark-300">{p.engagement}</td>
-                                    </tr>
-                                ))}</tbody>
-                            </table>
-                        </div>
+                        {loading ? <LoadingSpinner /> : posts.length === 0 ? <p className="text-dark-400 text-center py-8">لا توجد منشورات بعد. ابدأ بإنشاء أول منشور!</p> : (
+                            <div className="space-y-3">{posts.map(post => <div key={post.id} className="flex items-center gap-4 p-3 md:p-4 bg-dark-800/50 rounded-xl"><div className="flex-1"><p className="text-white font-medium text-sm md:text-base">{post.title}</p><p className="text-dark-400 text-xs md:text-sm">{post.platform} • {post.createdAt?.toDate?.() ? new Date(post.createdAt.toDate()).toLocaleDateString('ar-SA') : 'اليوم'}</p></div><span className={`px-3 py-1 rounded-full text-xs ${post.status === 'published' ? 'bg-emerald-500/20 text-emerald-400' : post.status === 'scheduled' ? 'bg-amber-500/20 text-amber-400' : 'bg-dark-600 text-dark-300'}`}>{post.status === 'published' ? 'منشور' : post.status === 'scheduled' ? 'مجدول' : 'مسودة'}</span></div>)}</div>
+                        )}
                     </div>
                 </div>
             );
         }
 
         function CalendarPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
+            const [posts, setPosts] = useState([]);
+            const [showModal, setShowModal] = useState(false);
+            const [newPost, setNewPost] = useState({ title: '', platform: 'Instagram', type: 'post', date: new Date().toISOString().split('T')[0] });
             const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+
+            useEffect(() => {
+                if (!user) return;
+                const unsubscribe = db.collection('posts').where('userId', '==', user.uid).onSnapshot(snapshot => setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+                return unsubscribe;
+            }, [user]);
+
+            const addPost = async () => {
+                if (!newPost.title) return;
+                await db.collection('posts').add({ ...newPost, userId: user.uid, status: 'draft', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                setShowModal(false); setNewPost({ title: '', platform: 'Instagram', type: 'post', date: new Date().toISOString().split('T')[0] });
+                addToast('تمت إضافة المنشور!');
+            };
+
+            const getPostsForDay = (day) => posts.filter(p => p.date === `2026-07-${String(day).padStart(2, '0')}`);
+            const platforms = { 'Instagram': 'from-pink-500 to-purple-500', 'TikTok': 'from-dark-700 to-dark-900', 'Facebook': 'from-blue-500 to-blue-700', 'Twitter': 'from-sky-400 to-sky-600' };
+
             return (
-                <div className="space-y-6 fade-in">
-                    <div className="flex items-center justify-between"><h3 className="text-2xl font-bold text-white">يوليو 2026</h3><button className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium flex items-center gap-2"><span>+</span>إضافة</button></div>
-                    <div className="glass-card rounded-2xl p-6">
-                        <div className="grid grid-cols-7 gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-dark-400 text-sm py-2">{d}</div>)}</div>
-                        <div className="grid grid-cols-7 gap-2">
-                            {Array.from({length:3}).map((_,i) => <div key={`e${i}`} className="h-24 bg-dark-800/30 rounded-xl"></div>)}
-                            {Array.from({length:31}).map((_,i) => <div key={i} className={`h-24 rounded-xl p-2 ${i+1===9?'bg-brand-500/10 border-2 border-brand-500':'bg-dark-800/50 hover:bg-dark-700/50'} transition-all cursor-pointer`}><span className={`text-sm ${i+1===9?'text-brand-400':'text-dark-300'}`}>{i+1}</span></div>)}
-                        </div>
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-white">يوليو 2026</h3><button onClick={() => setShowModal(true)} className="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium text-sm flex items-center gap-2"><span>+</span>إضافة</button></div>
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4">{days.map(d => <div key={d} className="text-center text-dark-400 text-xs md:text-sm py-2">{d}</div>)}</div>
+                        <div className="grid grid-cols-7 gap-1 md:gap-2">{Array.from({length:3}).map((_,i) => <div key={`e${i}`} className="h-16 md:h-24 bg-dark-800/30 rounded-xl"></div>)}{Array.from({length:31}).map((_,i) => {const day=i+1;const dayPosts=getPostsForDay(day);return <div key={day} className={`h-16 md:h-24 rounded-xl p-1 md:p-2 ${day===9?'bg-brand-500/10 border-2 border-brand-500':'bg-dark-800/50 hover:bg-dark-700/50'} cursor-pointer`}><span className={`text-xs md:text-sm ${day===9?'text-brand-400':'text-dark-300'}`}>{day}</span>{dayPosts.length>0&&<div className="mt-1 hidden md:block">{dayPosts.slice(0,2).map(p=><div key={p.id} className={`text-xs p-1 rounded truncate bg-gradient-to-r ${platforms[p.platform]||'bg-dark-600'} text-white`}>{p.title}</div>)}{dayPosts.length>2&&<span className="text-xs text-dark-400">+{dayPosts.length-2}</span>}</div>}</div>})}</div>
                     </div>
+                    <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="إضافة منشور جديد">
+                        <div className="space-y-4">
+                            <div><label className="block text-dark-300 text-sm mb-2">العنوان</label><input type="text" value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="عنوان المنشور..." /></div>
+                            <div><label className="block text-dark-300 text-sm mb-2">المنصة</label><select value={newPost.platform} onChange={e => setNewPost({...newPost, platform: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>Twitter</option></select></div>
+                            <div><label className="block text-dark-300 text-sm mb-2">التاريخ</label><input type="date" value={newPost.date} onChange={e => setNewPost({...newPost, date: e.target.value})} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
+                            <button onClick={addPost} className="w-full py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">إضافة المنشور</button>
+                        </div>
+                    </Modal>
                 </div>
             );
         }
 
         function TemplatesPage() {
+            const templates = [
+                { id: 1, name: 'عرض/خصم', color: 'from-red-500 to-pink-500', preview: '🔥 خصم 30%' },
+                { id: 2, name: 'منتج جديد', color: 'from-brand-500 to-purple-500', preview: '✨ وصلنا الجديد' },
+                { id: 3, name: 'نصيحة', color: 'from-emerald-500 to-teal-500', preview: '💡 نصيحة اليوم' },
+                { id: 4, name: 'رأي عميل', color: 'from-amber-500 to-orange-500', preview: '⭐ آراء عملائنا' },
+                { id: 5, name: 'خلف الكواليس', color: 'from-cyan-500 to-blue-500', preview: '🎬 من وراء الكواليس' },
+                { id: 6, name: 'عد تنازلي', color: 'from-rose-500 to-red-500', preview: '⏰ العد بدأ' },
+            ];
             return (
-                <div className="space-y-6 fade-in">
-                    <h3 className="text-2xl font-bold text-white">مكتبة القوالب</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{templates.map(t => (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-white">مكتبة القوالب</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">{templates.map(t => (
                         <div key={t.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
-                            <div className={`h-32 bg-gradient-to-br ${t.color} flex items-center justify-center`}><p className="text-white text-xl font-bold">{t.preview}</p></div>
-                            <div className="p-4"><h4 className="text-white font-bold">{t.name}</h4><p className="text-dark-400 text-sm mt-1">{t.description}</p><button className="w-full mt-3 px-4 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm hover:bg-brand-500/30">استخدام</button></div>
+                            <div className={`h-28 md:h-32 bg-gradient-to-br ${t.color} flex items-center justify-center`}><p className="text-white text-lg md:text-xl font-bold">{t.preview}</p></div>
+                            <div className="p-4"><h4 className="text-white font-bold">{t.name}</h4><button className="w-full mt-3 px-4 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm hover:bg-brand-500/30">استخدام</button></div>
                         </div>
                     ))}</div>
                 </div>
@@ -743,29 +701,45 @@
         }
 
         function CaptionsPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
             const [input, setInput] = useState('');
             const [results, setResults] = useState(null);
+            const [loading, setLoading] = useState(false);
+
             const generate = () => {
                 if (!input.trim()) return;
-                setResults([
-                    { title: 'رسمي', caption: `📢 ${input}\n\nنقدم لكم أفضل المنتجات بجودة عالية\n\n🛒 اطلب الآن!`, hashtags: '#تسوق #عروض #جودة' },
-                    { title: 'حماسي', caption: `🔥 ${input} 🔥\n\nلا تفوّت الفرصة! ✨`, hashtags: '#عرض_حصري #تسوق_الان' },
-                    { title: 'عاطفي', caption: `💜 ${input}\n\nنعرف إنكم تستاهلون الأفضل ❤️`, hashtags: '#عملائنا_أغلى #ثقة' },
-                ]);
+                setLoading(true);
+                setTimeout(() => {
+                    setResults([
+                        { title: 'رسمي', caption: `📢 ${input}\n\nنقدم لكم أفضل المنتجات بجودة عالية\n\n🛒 اطلب الآن!`, hashtags: '#تسوق #عروض #جودة' },
+                        { title: 'حماسي', caption: `🔥 ${input} 🔥\n\nلا تفوّت الفرصة! ✨\nالكمية محدودة!`, hashtags: '#عرض_حصري #تسوق_الان' },
+                        { title: 'عاطفي', caption: `💜 ${input}\n\nنعرف إنكم تستاهلون الأفضل ❤️\n\n🤝 ثقتكم غالية علينا`, hashtags: '#عملائنا_أغلى #ثقة' },
+                    ]);
+                    setLoading(false);
+                }, 1200);
             };
-            const copy = (t) => { navigator.clipboard.writeText(t); alert('تم النسخ!'); };
+
+            const copy = (text) => { navigator.clipboard.writeText(text); addToast('تم النسخ!'); };
+
+            const saveCaption = async (cap) => {
+                await db.collection('posts').add({ title: cap.title, content: cap.caption, hashtags: cap.hashtags, userId: user.uid, status: 'draft', platform: 'Instagram', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                addToast('تم حفظ الكابشن!');
+            };
+
             return (
-                <div className="space-y-6 fade-in">
-                    <div className="glass-card rounded-2xl p-6">
-                        <textarea value={input} onChange={e => setInput(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 h-32 resize-none" placeholder="اكتب فكرة المنشور..." />
-                        <button onClick={generate} className="mt-4 px-6 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium">✨ توليد الكابشنات</button>
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <h3 className="text-lg md:text-xl font-bold text-white mb-4">✍️ اكتب فكرة المنشور</h3>
+                        <textarea value={input} onChange={e => setInput(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 h-28 md:h-32 resize-none" placeholder="مثال: عرض خصم 20% على سماعات..." />
+                        <button onClick={generate} disabled={loading || !input.trim()} className="mt-4 px-6 py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors flex items-center gap-2">{loading ? <><div className="spinner" style={{width:'16px',height:'16px',borderWidth:'2px'}}></div>جاري التوليد...</> : '✨ توليد الكابشنات'}</button>
                     </div>
-                    {results && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">{results.map((c,i) => (
-                        <div key={i} className="glass-card rounded-2xl p-5 slide-in">
+                    {results && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{results.map((c, i) => (
+                        <div key={i} className="glass-card rounded-2xl p-4 md:p-5 slide-in" style={{ animationDelay: `${i * 0.1}s` }}>
                             <h4 className="text-brand-400 font-bold mb-3">{c.title}</h4>
-                            <div className="bg-dark-800 rounded-xl p-4 mb-3"><p className="text-white text-sm whitespace-pre-line">{c.caption}</p></div>
+                            <div className="bg-dark-800 rounded-xl p-3 md:p-4 mb-3"><p className="text-white text-sm whitespace-pre-line">{c.caption}</p></div>
                             <p className="text-brand-300 text-xs mb-3">{c.hashtags}</p>
-                            <button onClick={() => copy(c.caption)} className="w-full px-3 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button>
+                            <div className="flex gap-2"><button onClick={() => copy(c.caption)} className="flex-1 px-3 py-2 bg-brand-500/20 text-brand-400 rounded-lg text-sm">نسخ</button><button onClick={() => saveCaption(c)} className="px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm">حفظ</button></div>
                         </div>
                     ))}</div>}
                 </div>
@@ -773,30 +747,93 @@
         }
 
         function HashtagsPage() {
+            const { addToast } = useToast();
             const [search, setSearch] = useState('');
-            const tags = ['#تسوق_اونلاين', '#عروض', '#منتجات', '#خصم', '#شحن_سريع', '#جودة_عالية', '#ماركتنج', '#سوشيال_ميديا'];
+            const [copied, setCopied] = useState([]);
+            const tags = ['#تسوق_اونلاين', '#عروض', '#منتجات', '#خصم', '#شحن_سريع', '#جودة_عالية', '#ماركتنج', '#سوشيال_ميديا', '#عملاء', '#توفير', '#منتجات_جديدة', '#عرض_الصيف'];
             const filtered = tags.filter(t => t.includes(search));
+
+            const toggleCopy = (tag) => {
+                if (copied.includes(tag)) setCopied(copied.filter(t => t !== tag));
+                else setCopied([...copied, tag]);
+            };
+
+            const copyAll = () => { navigator.clipboard.writeText(copied.join(' ')); addToast(`تم نسخ ${copied.length} هاشتاجات!`); };
+
             return (
-                <div className="space-y-6 fade-in">
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" placeholder="ابحث عن هاشتاج..." />
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{filtered.map((t,i) => (
-                        <div key={i} className="glass-card rounded-xl p-4 hover-lift cursor-pointer" onClick={() => { navigator.clipboard.writeText(t); alert('تم النسخ!'); }}>
-                            <p className="text-brand-400 font-bold">{t}</p>
-                            <p className="text-dark-400 text-sm mt-1">اضغط للنسخ</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">{filtered.map((t, i) => (
+                        <div key={i} onClick={() => toggleCopy(t)} className={`glass-card rounded-xl p-3 md:p-4 hover-lift cursor-pointer transition-all ${copied.includes(t) ? 'ring-2 ring-brand-500' : ''}`}>
+                            <p className="text-brand-400 font-bold text-sm md:text-base">{t}</p>
+                            <p className="text-dark-400 text-xs mt-1">{copied.includes(t) ? '✓ محدد' : 'اضغط للتحديد'}</p>
                         </div>
                     ))}</div>
+                    {copied.length > 0 && (
+                        <div className="glass-card rounded-2xl p-4 sticky bottom-20 md:bottom-4 flex items-center justify-between">
+                            <span className="text-white text-sm">📋 {copied.length} هاشتاجات</span>
+                            <div className="flex gap-2"><button onClick={copyAll} className="px-4 py-2 bg-brand-500 rounded-xl text-white text-sm">نسخ الكل</button><button onClick={() => setCopied([])} className="px-4 py-2 bg-dark-700 rounded-xl text-dark-300 text-sm">مسح</button></div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function MediaPage() {
+            const { user } = useAuth();
+            const { addToast } = useToast();
+            const [files, setFiles] = useState([]);
+            const [uploading, setUploading] = useState(false);
+            const fileInput = useRef(null);
+
+            useEffect(() => {
+                if (!user) return;
+                const unsubscribe = db.collection('media').where('userId', '==', user.uid).onSnapshot(snapshot => setFiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+                return unsubscribe;
+            }, [user]);
+
+            const uploadFile = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                setUploading(true);
+                const storageRef = storage.ref(`media/${user.uid}/${file.name}`);
+                await storageRef.put(file);
+                const url = await storageRef.getDownloadURL();
+                await db.collection('media').add({ name: file.name, type: file.type, size: file.size, url, userId: user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                setUploading(false); addToast('تم رفع الملف!');
+            };
+
+            return (
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <div className="flex items-center justify-between"><h3 className="text-xl md:text-2xl font-bold text-white">مكتبة الوسائط</h3><input type="file" ref={fileInput} onChange={uploadFile} className="hidden" accept="image/*,video/*" /><button onClick={() => fileInput.current.click()} disabled={uploading} className="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium text-sm flex items-center gap-2">{uploading ? 'جاري الرفع...' : '+ رفع ملف'}</button></div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">{files.map(file => (
+                        <div key={file.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
+                            <div className="h-24 md:h-32 bg-gradient-to-br from-brand-500/20 to-pink-500/20 flex items-center justify-center">
+                                {file.type?.startsWith('image/') ? <img src={file.url} className="w-full h-full object-cover" /> : <span className="text-3xl">🎬</span>}
+                            </div>
+                            <div className="p-3"><p className="text-white text-sm font-medium truncate">{file.name}</p><p className="text-dark-400 text-xs">{(file.size / 1024 / 1024).toFixed(1)} MB</p></div>
+                        </div>
+                    ))}</div>
+                    {files.length === 0 && <p className="text-dark-400 text-center py-12">لا توجد ملفات بعد. ارفع أول ملف!</p>}
                 </div>
             );
         }
 
         function MessagesPage() {
+            const templates = [
+                { id: 1, category: 'استفسار سعر', template: 'مرحبًا! 😊\nسعر المنتج هو [السعر] ريال\nمع شحن مجاني للطلبات فوق 200 ريال' },
+                { id: 2, category: 'شحن', template: 'مرحبًا! 📦\nالشحن خلال 3-5 أيام عمل داخل المملكة' },
+                { id: 3, category: 'شكوى', template: 'مرحبًا! نعتذر عن أي إزعاج 🙏\nنحب نحل المشكلة فورًا' },
+                { id: 4, category: 'شكر', template: 'شكرًا لاختيارك متجرنا! 💜\nنتمنى يعجبك المنتج' },
+            ];
+            const { addToast } = useToast();
             return (
-                <div className="space-y-6 fade-in">
-                    <h3 className="text-2xl font-bold text-white">إدارة الرسائل</h3>
-                    <div className="space-y-4">{messageTemplates.map(t => (
-                        <div key={t.id} className="glass-card rounded-2xl p-5">
-                            <div className="flex items-center justify-between mb-3"><h4 className="text-white font-bold">{t.category}</h4><button onClick={() => { navigator.clipboard.writeText(t.template); alert('تم النسخ!'); }} className="px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg text-xs">نسخ</button></div>
-                            <div className="bg-dark-800 rounded-xl p-4"><p className="text-dark-200 text-sm whitespace-pre-line">{t.template}</p></div>
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-white">إدارة الرسائل</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{templates.map(t => (
+                        <div key={t.id} className="glass-card rounded-2xl p-4 md:p-5">
+                            <div className="flex items-center justify-between mb-3"><h4 className="text-white font-bold">{t.category}</h4><button onClick={() => { navigator.clipboard.writeText(t.template); addToast('تم النسخ!'); }} className="px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg text-xs">نسخ</button></div>
+                            <div className="bg-dark-800 rounded-xl p-3 md:p-4"><p className="text-dark-200 text-sm whitespace-pre-line">{t.template}</p></div>
                         </div>
                     ))}</div>
                 </div>
@@ -804,45 +841,49 @@
         }
 
         function AnalyticsPage() {
-            const platformStats = [
-                { name: 'إنستغرام', followers: '12,345', engagement: '5.2%', color: 'from-pink-500 to-purple-500' },
-                { name: 'تيك توك', followers: '8,234', engagement: '7.8%', color: 'from-dark-700 to-dark-900' },
-                { name: 'فيسبوك', followers: '3,456', engagement: '3.1%', color: 'from-blue-500 to-blue-700' },
-            ];
+            const { user } = useAuth();
+            const [posts, setPosts] = useState([]);
+            useEffect(() => { if (user) db.collection('posts').where('userId', '==', user.uid).onSnapshot(s => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() })))); }, [user]);
+            const platforms = { Instagram: { count: posts.filter(p => p.platform === 'Instagram').length, color: 'from-pink-500 to-purple-500' }, TikTok: { count: posts.filter(p => p.platform === 'TikTok').length, color: 'from-dark-700 to-dark-900' }, Facebook: { count: posts.filter(p => p.platform === 'Facebook').length, color: 'from-blue-500 to-blue-700' }, Twitter: { count: posts.filter(p => p.platform === 'Twitter').length, color: 'from-sky-400 to-sky-600' } };
             return (
-                <div className="space-y-6 fade-in">
-                    <h3 className="text-2xl font-bold text-white">تحليل الأداء</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{platformStats.map((p,i) => (
-                        <div key={i} className="glass-card rounded-xl p-5 hover-lift">
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center text-white font-bold mb-3`}>{p.name.charAt(0)}</div>
-                            <h4 className="text-white font-bold">{p.name}</h4>
-                            <p className="text-dark-400 text-sm mt-2">المتابعون: <span className="text-white">{p.followers}</span></p>
-                            <p className="text-dark-400 text-sm">التفاعل: <span className="text-emerald-400">{p.engagement}</span></p>
-                        </div>
-                    ))}</div>
-                    <div className="glass-card rounded-2xl p-6"><h3 className="text-lg font-bold text-white mb-4">أفضل أوقات النشر</h3>
-                        {[{t:'7 صباحاً',s:65},{t:'12 ظهراً',s:80},{t:'5 مساءً',s:90},{t:'8 مساءً',s:95}].map((item,i) => (
-                            <div key={i} className="flex items-center gap-4 mb-3"><span className="text-dark-300 text-sm w-20">{item.t}</span><div className="flex-1 h-6 bg-dark-800 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-brand-500 to-brand-400 rounded-full flex items-center justify-end pr-3" style={{width:`${item.s}%`}}><span className="text-white text-xs">{item.s}%</span></div></div></div>
-                        ))}
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-white">تحليل الأداء</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-white">{posts.length}</p><p className="text-dark-400 text-sm">إجمالي المنشورات</p></div>
+                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-emerald-400">{posts.filter(p => p.status === 'published').length}</p><p className="text-dark-400 text-sm">منشور</p></div>
+                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-amber-400">{posts.filter(p => p.status === 'draft').length}</p><p className="text-dark-400 text-sm">مسودة</p></div>
+                        <div className="glass-card rounded-xl p-4 text-center"><p className="text-3xl font-bold text-brand-400">{Object.keys(platforms).length}</p><p className="text-dark-400 text-sm">منصات</p></div>
+                    </div>
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
+                        <h3 className="text-lg font-bold text-white mb-4">توزيع المنشورات حسب المنصة</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Object.entries(platforms).map(([name, data], i) => (
+                            <div key={i} className="bg-dark-800/50 rounded-xl p-4 text-center"><div className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-br ${data.color} flex items-center justify-center text-white font-bold mb-2`}>{name.charAt(0)}</div><p className="text-white font-bold">{name}</p><p className="text-brand-400 text-2xl font-bold mt-1">{data.count}</p><p className="text-dark-400 text-xs">منشور</p></div>
+                        ))}</div>
                     </div>
                 </div>
             );
         }
 
         function SettingsPage() {
-            const { user } = useAuth();
+            const { user, userData, updateProfile } = useAuth();
+            const { addToast } = useToast();
+            const [name, setName] = useState(userData?.name || '');
+            const [saving, setSaving] = useState(false);
+
+            const save = async () => { setSaving(true); await updateProfile({ name }); addToast('تم الحفظ!'); setSaving(false); };
+
             return (
-                <div className="space-y-6 fade-in">
-                    <h3 className="text-2xl font-bold text-white">الإعدادات</h3>
-                    <div className="glass-card rounded-2xl p-6 space-y-4">
+                <div className="space-y-6 fade-in pb-20 md:pb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-white">الإعدادات</h3>
+                    <div className="glass-card rounded-2xl p-4 md:p-6 space-y-4">
                         <h4 className="text-lg font-bold text-white">الملف الشخصي</h4>
-                        <div><label className="block text-dark-300 text-sm mb-2">الاسم</label><input type="text" defaultValue={user?.displayName || ''} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
-                        <div><label className="block text-dark-300 text-sm mb-2">البريد الإلكتروني</label><input type="email" defaultValue={user?.email || ''} disabled className="w-full bg-dark-800/50 border border-dark-600 rounded-xl px-4 py-3 text-dark-400" /></div>
-                        <button className="px-6 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-medium transition-colors">حفظ التغييرات</button>
+                        <div><label className="block text-dark-300 text-sm mb-2">الاسم</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500" /></div>
+                        <div><label className="block text-dark-300 text-sm mb-2">البريد</label><input type="email" value={user?.email || ''} disabled className="w-full bg-dark-800/50 border border-dark-600 rounded-xl px-4 py-3 text-dark-400" /></div>
+                        <button onClick={save} disabled={saving} className="px-6 py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-600 rounded-xl text-white font-medium transition-colors">{saving ? 'جاري الحفظ...' : '💾 حفظ'}</button>
                     </div>
-                    <div className="glass-card rounded-2xl p-6">
+                    <div className="glass-card rounded-2xl p-4 md:p-6">
                         <h4 className="text-lg font-bold text-white mb-4">الاشتراك</h4>
-                        <div className="flex items-center gap-4 p-4 bg-dark-800 rounded-xl"><div className="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400 text-xl">⭐</div><div className="flex-1"><p className="text-white font-bold">الخطة المجانية</p><p className="text-dark-400 text-sm">3 منشورات شهريًا</p></div><button className="px-4 py-2 bg-brand-500 rounded-xl text-white text-sm">ترقية</button></div>
+                        <div className="flex items-center gap-4 p-4 bg-dark-800 rounded-xl"><div className="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400 text-xl">⭐</div><div className="flex-1"><p className="text-white font-bold">{userData?.plan === 'pro' ? 'الخطة المدفوعة' : 'الخطة المجانية'}</p><p className="text-dark-400 text-sm">{userData?.plan === 'pro' ? 'جميع الميزات' : '3 منشورات شهريًا'}</p></div><button className="px-4 py-2 bg-brand-500 rounded-xl text-white text-sm">ترقية</button></div>
                     </div>
                 </div>
             );
@@ -851,7 +892,6 @@
         // ==================== MAIN APP ====================
         function App() {
             const [currentPage, setCurrentPage] = useState('landing');
-
             const navigate = (page) => { setCurrentPage(page); window.scrollTo(0, 0); };
 
             const renderPage = () => {
@@ -859,27 +899,25 @@
                     case 'landing': return <LandingPage onNavigate={navigate} />;
                     case 'login': return <LoginPage onNavigate={navigate} />;
                     case 'register': return <RegisterPage onNavigate={navigate} />;
-                    case 'dashboard': return <DashboardApp onNavigate={navigate} />;
+                    case 'dashboard': return <DashboardLayout onNavigate={navigate} />;
                     default: return <LandingPage onNavigate={navigate} />;
                 }
             };
-
             return <div>{renderPage()}</div>;
         }
 
-        function DashboardApp({ onNavigate }) {
+        function DashboardLayout({ onNavigate }) {
             const [activePage, setActivePage] = useState('dashboard');
             const [sidebarOpen, setSidebarOpen] = useState(true);
-            
-            const pages = { dashboard: DashboardPage, calendar: CalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
+            const pages = { dashboard: DashboardPage, calendar: CalendarPage, templates: TemplatesPage, captions: CaptionsPage, hashtags: HashtagsPage, media: MediaPage, messages: MessagesPage, analytics: AnalyticsPage, settings: SettingsPage };
             const Page = pages[activePage] || DashboardPage;
-
             return (
                 <div className="flex min-h-screen bg-dark-950">
-                    <Sidebar activePage={activePage} setActivePage={setActivePage} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-                    <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'mr-64' : 'mr-20'}`}>
+                    <Sidebar activePage={activePage} setActivePage={setActivePage} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onNavigate={onNavigate} />
+                    <MobileNav activePage={activePage} setActivePage={setActivePage} />
+                    <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
                         <Header activePage={activePage} onNavigate={onNavigate} />
-                        <div className="p-6"><Page /></div>
+                        <div className="p-4 md:p-6"><Page /></div>
                     </main>
                 </div>
             );
@@ -887,9 +925,13 @@
 
         function Root() {
             return (
-                <AuthProvider>
-                    <App />
-                </AuthProvider>
+                <ThemeProvider>
+                    <ToastProvider>
+                        <AuthProvider>
+                            <App />
+                        </AuthProvider>
+                    </ToastProvider>
+                </ThemeProvider>
             );
         }
 
